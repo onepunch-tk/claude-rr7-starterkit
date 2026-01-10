@@ -1,6 +1,6 @@
 import { LogOut, Menu, User as UserIcon } from "lucide-react";
 import { Form } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -8,9 +8,9 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import type { User } from "@/db/schema";
+} from "~/components/ui/dropdown-menu";
+import { SidebarTrigger } from "~/components/ui/sidebar";
+import type { User } from "~/db/schema";
 
 interface HeaderProps {
 	user: User;

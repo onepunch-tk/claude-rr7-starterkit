@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card";
+} from "~/components/ui/card";
 import {
 	Form,
 	FormControl,
@@ -17,17 +17,17 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+} from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
+import { Textarea } from "~/components/ui/textarea";
 import type { Route } from "./+types/profile";
 
 /**

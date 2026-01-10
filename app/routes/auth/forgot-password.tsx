@@ -1,5 +1,5 @@
 import { Form, Link, useActionData } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -7,10 +7,10 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { sendPasswordResetEmail } from "@/lib/email.server";
+} from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { sendPasswordResetEmail } from "~/lib/email.server";
 import type { Route } from "./+types/forgot-password";
 
 /**

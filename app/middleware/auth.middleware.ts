@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
-import type { User } from "@/db/schema";
-import { createAuthInstance } from "@/lib/auth.server";
+import type { User } from "~/db/schema";
+import { createAuthInstance } from "~/lib/auth.server";
 
 interface MiddlewareContext {
 	request: Request;

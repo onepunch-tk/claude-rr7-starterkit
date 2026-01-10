@@ -1,6 +1,6 @@
 import { Github } from "lucide-react";
 import { Form, Link, redirect, useActionData } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -8,11 +8,11 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createAuthInstance } from "@/lib/auth.server";
-import { requireGuest } from "@/middleware/guest.middleware";
+} from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { createAuthInstance } from "~/lib/auth.server";
+import { requireGuest } from "~/middleware/guest.middleware";
 import type { Route } from "./+types/login";
 
 /**

@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { createDrizzleClient } from "@/db";
-import * as schema from "@/db/schema";
+import { createDrizzleClient } from "~/db";
+import * as schema from "~/db/schema";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./email.server";
 
 /**

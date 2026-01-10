@@ -542,7 +542,7 @@ Better-auth와 함께 React Router 7의 미들웨어 패턴을 사용하여 인�
 
 ```typescript
 // 인증 필수 라우트
-import { requireAuth } from "@/middleware/auth.middleware";
+import { requireAuth } from "~/middleware/auth.middleware";
 
 export const loader = async ({ request, context }: Route.LoaderArgs) => {
   const user = await requireAuth({ request, context });
@@ -550,7 +550,7 @@ export const loader = async ({ request, context }: Route.LoaderArgs) => {
 };
 
 // 선택적 인증
-import { getOptionalAuth } from "@/middleware/auth.middleware";
+import { getOptionalAuth } from "~/middleware/auth.middleware";
 
 export const loader = async ({ request, context }: Route.LoaderArgs) => {
   const user = await getOptionalAuth({ request, context });
@@ -558,7 +558,7 @@ export const loader = async ({ request, context }: Route.LoaderArgs) => {
 };
 
 // 게스트 전용 (로그인 사용자 리다이렉트)
-import { requireGuest } from "@/middleware/guest.middleware";
+import { requireGuest } from "~/middleware/guest.middleware";
 
 export const loader = async ({ request, context }: Route.LoaderArgs) => {
   await requireGuest({ request, context });

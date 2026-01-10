@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 
 /**
  * 랜딩 페이지 네비게이션 바
