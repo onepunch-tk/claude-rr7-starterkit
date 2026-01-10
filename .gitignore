@@ -4,6 +4,9 @@
 .env.*.local
 /node_modules/
 
+# wrangler
+.wrangler
+
 # React Router
 /.react-router/
 /build/
