@@ -1,0 +1,19 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "claude-rr7-starterkit",
+	"main": "./workers/app.ts",
+	"compatibility_date": "2025-11-21",
+	"observability": {
+		"enabled": true
+	},
+	"env": {
+		"production": {
+			"name": "claude-rr7-starterkit-production"
+		},
+		"staging": {
+			"name": "claude-rr7-starterkit-staging"
+		}
+	},
+	"upload_source_maps": true,
+	"assets": { "directory": "./public/", "binding": "ASSETS" }
+}

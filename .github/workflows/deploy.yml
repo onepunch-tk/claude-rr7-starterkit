@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
 
 jobs:
   check:
@@ -32,12 +32,17 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      
+      # 1. 여기서 빌드 실행
       - name: Build
         run: bun run build
+      
+      # 2. 생성된 build 폴더를 'build-artifact'라는 이름으로 임시 저장소에 업로드
       - uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: build-artifact
           path: build/
+          retention-days: 1
 
   deploy-staging:
     name: Deploy to Staging
@@ -46,18 +51,26 @@ jobs:
     if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
     environment:
       name: staging
-      # ⭐ wrangler.toml의 [env.staging].name과 일치해야 함
-      # 형식: https://[env.staging.name].workers.dev
       url: https://claude-rr7-starterkit-staging.workers.dev
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      
+      # Wrangler 실행을 위해 의존성은 필요함 (단, 빌드는 안 함)
       - run: bun install --frozen-lockfile
+
+      # 3. 아까 저장한 build 폴더를 다운로드 (이게 핵심!)
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: build/
+
+      # 4. 파일이 존재하므로 빌드 없이 즉시 배포 가능
       - uses: cloudflare/wrangler-action@v3
         with:
-          # GitHub Repository Secrets에서 설정
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # package.json 스크립트 실행 (빌드 명령어 없음)
           command: deploy --env staging
 
   deploy-production:
@@ -67,16 +80,21 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      # ⭐ wrangler.toml의 [env.production].name과 일치해야 함
-      # 형식: https://[env.production.name].workers.dev
       url: https://claude-rr7-starterkit.workers.dev
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+
+      # Production도 똑같이 다운로드
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: build/
+
       - uses: cloudflare/wrangler-action@v3
         with:
-          # GitHub Repository Secrets에서 설정
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # package.json 스크립트 실행
           command: deploy --env production
