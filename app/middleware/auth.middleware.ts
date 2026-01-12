@@ -3,7 +3,7 @@ import type { User } from "~/db/schema";
 import {
 	createAuthFromContext,
 	type MiddlewareContext,
-} from "~/lib/auth-helpers.server";
+} from "~/lib/auth.server";
 
 /**
  * 인증 필수 미들웨어
@@ -33,7 +33,7 @@ export const requireAuth = async ({
 	if (!session?.user) {
 		const url = new URL(request.url);
 		const redirectTo = url.pathname + url.search;
-		throw redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
+		throw redirect(`/auth/signin?redirectTo=${encodeURIComponent(redirectTo)}`);
 	}
 
 	return session.user as User;

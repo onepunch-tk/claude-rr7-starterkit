@@ -8,6 +8,7 @@ import { createAuthClient } from "better-auth/react";
  */
 export const authClient = createAuthClient({
 	baseURL: typeof window !== "undefined" ? window.location.origin : "",
+	basePath: "/auth/api",
 });
 
 /**
@@ -42,6 +43,7 @@ export const signIn = async (email: string, password: string) => {
  * GitHub OAuth 로그인
  */
 export const signInWithGitHub = async () => {
+	console.log("Github");
 	return authClient.signIn.social({
 		provider: "github",
 		callbackURL: "/dashboard",

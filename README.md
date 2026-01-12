@@ -770,50 +770,154 @@ bun run db:studio
 
 ### React Router 미들웨어 패턴
 
-Better-auth와 함께 React Router 7의 미들웨어 패턴을 사용하여 인증을 중앙 집중식으로 관리합니다.
+Better-auth와 함께 React Router 7의 미들웨어 패턴을 사용하여 인증을 중앙 집중식으로 관리합니다. **2개의 미들웨어만 사용**하여 단순하고 유연합니다.
+
+#### 1. 인증 필수 라우트 (보호된 페이지)
+
+미인증 사용자는 로그인 페이지로 자동 리다이렉트됩니다:
 
 ```typescript
-// 인증 필수 라우트
 import { requireAuth } from "~/middleware/auth.middleware";
 
 export const loader = async ({ request, context }: Route.LoaderArgs) => {
   const user = await requireAuth({ request, context });
   return { user };
 };
+```
 
-// 선택적 인증
+**사용 사례**: 대시보드, 설정, 프로필 등 로그인 필수 페이지
+
+#### 2. 선택적 인증 (공개 페이지)
+
+로그인 여부와 관계없이 페이지에 접근 가능하며, UI에서 유연하게 처리합니다:
+
+```typescript
 import { getOptionalAuth } from "~/middleware/auth.middleware";
 
 export const loader = async ({ request, context }: Route.LoaderArgs) => {
   const user = await getOptionalAuth({ request, context });
   return { user };
 };
+```
 
-// 게스트 전용 (로그인 사용자 리다이렉트)
+**사용 사례**:
+- 홈 페이지 (로그인 여부에 따라 다른 버튼 표시)
+- 인증 페이지 (로그인된 사용자에게 "이미 로그인됨" 메시지)
+- 비밀번호 찾기 (로그인 여부 무관)
+
+#### 3. 게스트 전용 미들웨어 제거 이유
+
+과거의 `requireGuest` 미들웨어는 **제거되었습니다**. 대신 `getOptionalAuth`를 사용하여 UI 레벨에서 처리합니다:
+
+```typescript
+// ❌ 과거 (제거됨)
 import { requireGuest } from "~/middleware/guest.middleware";
 
-export const loader = async ({ request, context }: Route.LoaderArgs) => {
-  await requireGuest({ request, context });
-  return {};
-};
+// ✅ 현재 (개선됨)
+const { user } = useOutletContext<{ user: User | null }>();
+
+if (user) {
+  return <Card>이미 로그인되어 있습니다...</Card>;
+}
+return <Card>로그인 폼</Card>;
 ```
+
+**개선 이유**:
+- **더 유연함**: "다른 계정으로 로그인" 같은 기능 구현 가능
+- **더 나은 UX**: 강제 리다이렉트 없음 (GitHub, Gmail 패턴)
+- **더 간단함**: 2개의 미들웨어만으로 충분
 
 ### Better-auth 구조
 
-**서버 설정** (`app/lib/auth.server.ts`):
+#### 1. 서버 설정 (`app/lib/auth.server.ts`)
+
+모든 인증 로직이 이 파일에 집중되어 있습니다:
+
+```typescript
+// Better-auth 인스턴스 생성
+export const createAuthInstance = (...)
+export const createAuthFromContext = (context)
+
+// 서버 사이드 헬퍼 함수 (action에서 사용)
+export const signInWithCredentials = async (...)     // 이메일 로그인
+export const signUpWithCredentials = async (...)     // 이메일 회원가입
+export const signOut = async (...)                   // 로그아웃
+export const requestPasswordReset = async (...)      // 비밀번호 재설정 요청
+export const resetPasswordWithToken = async (...)    // 비밀번호 재설정 실행
+```
+
+**특징**:
 - DrizzleAdapter를 통한 PostgreSQL 연결
-- OAuth 프로바이더 설정
+- OAuth 프로바이더 설정 (GitHub, Google)
 - 이메일 인증 및 비밀번호 재설정
-- 2FA 플러그인
+- 모든 헬퍼 함수는 **서버 사이드 action에서만 사용**
 
-**클라이언트 설정** (`app/lib/auth.client.ts`):
-- 브라우저용 인증 클라이언트
-- 로그인/회원가입 헬퍼 함수
-- OAuth 로그인 함수
+#### 2. 클라이언트 설정 (`app/lib/auth.client.ts`)
 
-**API 라우트** (`app/routes/auth/api/$.tsx`):
-- Better-auth API 핸들러
-- `/auth/api/*` 경로의 모든 인증 요청 처리
+브라우저에서 사용하는 인증 클라이언트:
+
+```typescript
+// OAuth 로그인 (현재 사용 중인 것들)
+export const signInWithGitHub = async (...)
+export const signInWithGoogle = async (...)
+
+// 이메일 로그인/회원가입 (더 이상 사용하지 않음 - action으로 처리)
+// @deprecated use action + signInWithCredentials instead
+```
+
+**참고**: 이메일 로그인/회원가입은 이제 **서버 사이드 action**으로 처리됩니다.
+
+#### 3. API 라우트 (`app/routes/auth/api/$.tsx`)
+
+Better-auth의 모든 엔드포인트를 처리하는 catch-all 라우트:
+
+```typescript
+// Better-auth가 자동으로 다음 엔드포인트들을 처리:
+// POST /auth/api/sign-up
+// POST /auth/api/sign-in
+// POST /auth/api/sign-out
+// GET /auth/api/session
+// POST /auth/api/verify-email
+// POST /auth/api/forget-password
+// POST /auth/api/reset-password
+// GET /auth/api/callback/github
+// GET /auth/api/callback/google
+```
+
+#### 4. 인증 페이지 구조 (개선된 패턴)
+
+모든 인증 페이지는 **동일한 패턴**을 따릅니다:
+
+```typescript
+// 1. auth/layout.tsx에서 getOptionalAuth로 user 로드
+export const loader = async (...) => {
+  const user = await getOptionalAuth({ request, context });
+  return { user };
+};
+
+// 2. 각 페이지에서 useOutletContext로 user 가져오기
+const { user } = useOutletContext<{ user: User | null }>();
+
+// 3. 로그인 여부에 따라 조건부 렌더링
+if (user) {
+  return <Card>이미 로그인됨</Card>;
+}
+return <Card>로그인 폼 + action</Card>;
+
+// 4. 폼 제출은 action 함수로 처리
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  // ... 검증
+  await signInWithCredentials({ request, context, ... });
+  return redirect('/dashboard');
+};
+```
+
+**이점**:
+- 모든 인증 로직이 서버에서 처리됨 (보안)
+- 클라이언트가 우회할 수 없음
+- 세션 쿠키는 httpOnly, secure로 자동 설정
+- Progressive Enhancement 지원 (JS 비활성화 시에도 작동)
 
 ## 📚 주요 라이브러리
 

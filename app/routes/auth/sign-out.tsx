@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { signOut } from "~/lib/auth-helpers.server";
+import { signOut } from "~/lib/auth.server";
 
 /**
  * 로그아웃 라우트

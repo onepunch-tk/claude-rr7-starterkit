@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router";
+import type { ActionFunctionArgs } from "react-router";
+import { Link, useFetcher } from "react-router";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -24,22 +25,67 @@ import {
 	type ForgotPasswordFormData,
 	forgotPasswordSchema,
 } from "~/features/auth/types";
-import { forgotPassword } from "~/lib/auth.client";
+import { requestPasswordReset } from "~/lib/auth.server";
 import type { Route } from "./+types/forgot-password";
 
 /**
  * 비밀번호 찾기 페이지
+ *
+ * - 로그인 여부와 관계없이 접근 가능 (공개 페이지)
+ * - 이메일 주소를 입력하면 비밀번호 재설정 링크 전송
  */
 export const meta: Route.MetaFunction = () => [
 	{ title: "비밀번호 찾기 - Claude RR7 Starterkit" },
 ];
 
-// loader는 그대로 유지하되, action은 제거
+/**
+ * 서버 사이드 비밀번호 재설정 요청 처리
+ *
+ * useFetcher와 함께 작동하여 폼 제출을 처리
+ */
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+	if (request.method !== "POST") {
+		throw new Response(JSON.stringify({ error: "POST 요청만 허용됩니다." }), {
+			status: 405,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+
+	const formData = await request.formData();
+	const email = formData.get("email") as string | null;
+
+	// 폼 검증
+	const result = forgotPasswordSchema.safeParse({ email });
+	if (!result.success) {
+		throw new Response(
+			JSON.stringify({ error: "유효한 이메일을 입력해주세요." }),
+			{
+				status: 400,
+				headers: { "Content-Type": "application/json" },
+			},
+		);
+	}
+
+	try {
+		// 서버 사이드 비밀번호 재설정 요청
+		await requestPasswordReset({
+			request,
+			context,
+			email: result.data.email,
+		});
+
+		// 성공: 성공 메시지 반환 (보안상 이메일 노출하지 않음)
+		return { success: true };
+	} catch (error) {
+		// 보안상 이유로 실제 오류와 관계없이 같은 메시지 반환
+		// (이메일 존재 여부 노출 방지)
+		console.error("비밀번호 재설정 요청 실패:", error);
+		return { success: true };
+	}
+};
 
 export default function ForgotPassword() {
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
+	const fetcher = useFetcher<typeof action>();
 
 	const form = useForm<ForgotPasswordFormData>({
 		resolver: zodResolver(forgotPasswordSchema),
@@ -48,76 +94,101 @@ export default function ForgotPassword() {
 		},
 	});
 
-	const onSubmit = async (data: ForgotPasswordFormData) => {
-		setIsLoading(true);
-		setError(null);
-		setSuccess(null);
+	const isSubmitting = fetcher.state === "submitting";
+	const isSuccess = fetcher.data?.success === true;
 
-		try {
-			await forgotPassword(data.email);
-			setSuccess("비밀번호 재설정 이메일이 전송되었습니다.");
-			form.reset();
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "이메일 전송에 실패했습니다.",
-			);
-		} finally {
-			setIsLoading(false);
-		}
+	const onSubmit = (data: ForgotPasswordFormData) => {
+		fetcher.submit(data, { method: "post" });
 	};
 
-	return (
-		<Card className="w-full max-w-md">
-			<CardHeader>
-				<CardTitle>비밀번호 찾기</CardTitle>
-				<CardDescription>
-					이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다
-				</CardDescription>
-			</CardHeader>
+	// 성공 상태: 안내 메시지 표시
+	if (isSuccess) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+				<Card className="w-full max-w-md">
+					<CardHeader>
+						<CardTitle>이메일 전송 완료</CardTitle>
+						<CardDescription>
+							비밀번호 재설정 링크가 이메일로 전송되었습니다.
+						</CardDescription>
+					</CardHeader>
 
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)}>
-					<CardContent className="space-y-4">
-						{error && (
-							<div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-								{error}
-							</div>
-						)}
-						{success && (
-							<div className="rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-								{success}
-							</div>
-						)}
-
-						<FormField
-							control={form.control}
-							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>이메일</FormLabel>
-									<FormControl>
-										<Input type="email" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<Button type="submit" className="w-full" disabled={isLoading}>
-							{isLoading ? "전송 중..." : "재설정 링크 전송"}
-						</Button>
+					<CardContent>
+						<Alert>
+							<AlertDescription>
+								이메일의 링크를 클릭하여 새로운 비밀번호를 설정해주세요. 링크는
+								24시간 동안 유효합니다.
+							</AlertDescription>
+						</Alert>
 					</CardContent>
 
 					<CardFooter className="flex justify-center">
 						<Link
-							to="/auth/login"
+							to="/auth/signin"
 							className="text-sm text-primary hover:underline"
 						>
 							로그인으로 돌아가기
 						</Link>
 					</CardFooter>
-				</form>
-			</Form>
-		</Card>
+				</Card>
+			</div>
+		);
+	}
+
+	// 입력 상태: 폼 표시
+	return (
+		<div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+			<Card className="w-full max-w-md">
+				<CardHeader>
+					<CardTitle>비밀번호 찾기</CardTitle>
+					<CardDescription>
+						이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다
+					</CardDescription>
+				</CardHeader>
+
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)}>
+						<CardContent className="space-y-4">
+							{/* 에러 메시지 */}
+							{fetcher.data?.error && (
+								<Alert variant="destructive">
+									<AlertDescription>{fetcher.data.error}</AlertDescription>
+								</Alert>
+							)}
+
+							{/* 이메일 필드 */}
+							<FormField
+								control={form.control}
+								name="email"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>이메일</FormLabel>
+										<FormControl>
+											<Input type="email" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							{/* 전송 버튼 */}
+							<Button type="submit" className="w-full" disabled={isSubmitting}>
+								{isSubmitting ? "전송 중..." : "재설정 링크 전송"}
+							</Button>
+						</CardContent>
+
+						{/* 로그인 링크 */}
+						<CardFooter className="flex justify-center">
+							<Link
+								to="/auth/signin"
+								className="text-sm text-primary hover:underline"
+							>
+								로그인으로 돌아가기
+							</Link>
+						</CardFooter>
+					</form>
+				</Form>
+			</Card>
+		</div>
 	);
 }

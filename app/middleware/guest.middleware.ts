@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
+import type { MiddlewareContext } from "~/lib/auth.server";
 import { getOptionalAuth } from "./auth.middleware";
-import type { MiddlewareContext } from "~/lib/auth-helpers.server";
 
 /**
  * 게스트 전용 미들웨어

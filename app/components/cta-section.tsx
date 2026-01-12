@@ -30,7 +30,7 @@ export default function CtaSection() {
 	return (
 		<section className="container py-20">
 			<div className="mx-auto max-w-4xl">
-				<Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30">
+				<Card className="border-2 border-primary/20 bg-linear-to-br from-background to-muted/30">
 					<CardHeader className="text-center">
 						<CardTitle className="text-3xl font-bold sm:text-4xl">
 							지금 바로 시작하세요

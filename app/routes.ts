@@ -6,42 +6,41 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-	index("routes/index.tsx"),
-
-	// 인증 라우트 (레이아웃 포함)
-	layout("routes/auth/layout.tsx", [
-		route("auth/login", "routes/auth/login.tsx"),
-		route("auth/signup", "routes/auth/signup.tsx"),
-		route("auth/forgot-password", "routes/auth/forgot-password.tsx"),
-		route("auth/reset-password", "routes/auth/reset-password.tsx"),
-	]),
-	route("auth/logout", "routes/auth/logout.tsx"), // 레이아웃 없음
+	// 리소스 라우트
+	route("robots.txt", "routes/resources/robots.ts"),
+	route("sitemap.xml", "routes/resources/sitemap.ts"),
 
 	// Better-auth API 라우트 (catch-all)
 	route("auth/api/*", "features/auth/api/$.tsx"),
 
-	// 대시보드 라우트 (레이아웃 포함)
-	layout("routes/dashboard/layout.tsx", [
-		route("dashboard", "routes/dashboard/index.tsx"),
-		route("dashboard/home", "routes/dashboard/home.tsx"),
+	// 공개 페이지 (public.layout)
+	layout("routes/layouts/public.layout.tsx", [
+		index("routes/home/home.tsx"),
 
-		// 사용자 관리
-		route("dashboard/users", "routes/dashboard/users/index.tsx"),
-		route("dashboard/users/:id", "routes/dashboard/users/[id].tsx"),
-
-		// 설정
-		route("dashboard/settings", "routes/dashboard/settings/index.tsx"),
-		route(
-			"dashboard/settings/profile",
-			"routes/dashboard/settings/profile.tsx",
-		),
-		route(
-			"dashboard/settings/security",
-			"routes/dashboard/settings/security.tsx",
-		),
+		// 인증 페이지 (모두 public.layout 직속)
+		route("auth/signin", "routes/auth/sign-in.tsx"),
+		route("auth/signup", "routes/auth/sign-up.tsx"),
+		route("auth/forgot-password", "routes/auth/forgot-password.tsx"),
+		route("auth/reset-password", "routes/auth/reset-password.tsx"),
 	]),
 
-	// 리소스 라우트
-	route("robots.txt", "routes/resources/robots.ts"),
-	route("sitemap.xml", "routes/resources/sitemap.ts"),
+	// 인증 필수 페이지 (private.layout)
+	layout("routes/layouts/private.layout.tsx", [
+		// 로그아웃 (인증 필수)
+		route("auth/signout", "routes/auth/sign-out.tsx"),
+
+		// 대시보드 (중첩 레이아웃)
+		layout("routes/dashboard/layout.tsx", [
+			index("routes/dashboard/index.tsx"),
+
+			// 사용자 관리
+			route("users", "routes/dashboard/users/index.tsx"),
+			route("users/:id", "routes/dashboard/users/[id].tsx"),
+
+			// 설정
+			route("settings", "routes/dashboard/settings/index.tsx"),
+			route("settings/profile", "routes/dashboard/settings/profile.tsx"),
+			route("settings/security", "routes/dashboard/settings/security.tsx"),
+		]),
+	]),
 ] satisfies RouteConfig;

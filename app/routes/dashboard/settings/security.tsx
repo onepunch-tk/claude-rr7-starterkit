@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import type { ActionFunctionArgs } from "react-router";
+import { useFetcher } from "react-router";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import {
 	Form,
@@ -16,7 +17,7 @@ import {
 	type ChangePasswordFormData,
 	changePasswordSchema,
 } from "~/features/auth/types";
-import { changePassword } from "~/lib/auth.client";
+import { changePasswordWithCurrent } from "~/lib/auth.server";
 import type { Route } from "./+types/security";
 
 /**
@@ -26,11 +27,61 @@ export const meta: Route.MetaFunction = () => [
 	{ title: "보안 설정 - Claude RR7 Starterkit" },
 ];
 
+/**
+ * 비밀번호 변경 액션
+ */
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+	if (request.method !== "POST") {
+		throw new Response(JSON.stringify({ error: "POST 요청만 허용됩니다." }), {
+			status: 405,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+
+	const formData = await request.formData();
+	const currentPassword = formData.get("currentPassword") as string | null;
+	const newPassword = formData.get("newPassword") as string | null;
+	const newPasswordConfirm = formData.get("newPasswordConfirm") as string | null;
+
+	// 검증
+	const result = changePasswordSchema.safeParse({
+		currentPassword,
+		newPassword,
+		newPasswordConfirm,
+	});
+
+	if (!result.success) {
+		throw new Response(
+			JSON.stringify({ error: "입력값이 올바르지 않습니다." }),
+			{
+				status: 400,
+				headers: { "Content-Type": "application/json" },
+			},
+		);
+	}
+
+	try {
+		await changePasswordWithCurrent({
+			request,
+			context,
+			currentPassword: result.data.currentPassword,
+			newPassword: result.data.newPassword,
+			revokeOtherSessions: true,
+		});
+
+		return { success: true };
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : "비밀번호 변경에 실패했습니다.";
+		throw new Response(JSON.stringify({ error: errorMessage }), {
+			status: 400,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+};
+
 export default function SecuritySettings() {
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
-	const navigate = useNavigate();
+	const fetcher = useFetcher<typeof action>();
 
 	const form = useForm<ChangePasswordFormData>({
 		resolver: zodResolver(changePasswordSchema),
@@ -41,30 +92,13 @@ export default function SecuritySettings() {
 		},
 	});
 
-	const onSubmit = async (data: ChangePasswordFormData) => {
-		setIsLoading(true);
-		setError(null);
-		setSuccess(null);
-
-		try {
-			await changePassword(data.currentPassword, data.newPassword, true);
-			setSuccess("비밀번호가 성공적으로 변경되었습니다.");
-			form.reset();
-
-			// 비밀번호 변경 후 다른 세션이 무효화되었으므로 재로그인 권장
-			setTimeout(() => {
-				navigate("/auth/login");
-			}, 2000);
-		} catch (err) {
-			setError(
-				err instanceof Error
-					? err.message
-					: "비밀번호 변경에 실패했습니다.",
-			);
-		} finally {
-			setIsLoading(false);
-		}
+	const onSubmit = (data: ChangePasswordFormData) => {
+		fetcher.submit(data, { method: "post" });
 	};
+
+	const isSubmitting = fetcher.state === "submitting";
+	const success = fetcher.data?.success === true;
+	const error = fetcher.data?.error;
 
 	return (
 		<div className="space-y-6">
@@ -80,15 +114,17 @@ export default function SecuritySettings() {
 					<h2 className="text-xl font-semibold mb-4">비밀번호 변경</h2>
 
 					{success && (
-						<div className="mb-4 rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-							{success}
-						</div>
+						<Alert className="mb-4">
+							<AlertDescription>
+								비밀번호가 성공적으로 변경되었습니다.
+							</AlertDescription>
+						</Alert>
 					)}
 
 					{error && (
-						<div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-							{error}
-						</div>
+						<Alert variant="destructive" className="mb-4">
+							<AlertDescription>{error}</AlertDescription>
+						</Alert>
 					)}
 
 					<Form {...form}>
@@ -135,8 +171,8 @@ export default function SecuritySettings() {
 								)}
 							/>
 
-							<Button type="submit" disabled={isLoading}>
-								{isLoading ? "변경 중..." : "비밀번호 변경"}
+							<Button type="submit" disabled={isSubmitting}>
+								{isSubmitting ? "변경 중..." : "비밀번호 변경"}
 							</Button>
 						</form>
 					</Form>
