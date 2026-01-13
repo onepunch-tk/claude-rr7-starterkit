@@ -45,17 +45,27 @@ export const calculatePasswordStrength = (
 	// 레벨 및 메시지 결정
 	let level: PasswordStrengthLevel;
 	let message: string;
+	let colorClass: string;
 
 	if (score < 40) {
 		level = "weak";
 		message = "약함";
+		colorClass = "bg-red-600";
 	} else if (score < 70) {
 		level = "medium";
 		message = "보통";
+		colorClass = "bg-yellow-600";
 	} else {
 		level = "strong";
 		message = "강함";
+		colorClass = "bg-green-600";
 	}
 
-	return { score, level, message };
+	return {
+		score,
+		level,
+		message,
+		label: message,
+		colorClass,
+	};
 };

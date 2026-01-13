@@ -1,8 +1,6 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useFetcher } from "react-router";
+import { useEffect, useState } from "react";
+import { Form, useActionData, useNavigation } from "react-router";
 import { z } from "zod";
-import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -11,16 +9,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -30,11 +20,15 @@ import {
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
+import { FormField, SubmitButton } from "~/components/forms";
 import {
 	type ChangePasswordFormData,
 	changePasswordSchema,
 } from "~/features/auth/types";
+import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
 import { changePasswordWithCurrent } from "~/lib/auth.server";
+import { validateFormData } from "~/lib/form-helpers";
+import { toast } from "sonner";
 import type { Route } from "./+types/index";
 
 /**
@@ -68,17 +62,9 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
 
 	// 프로필 업데이트
 	if (actionType === "updateProfile") {
-		const data = {
-			fullName: formData.get("fullName") as string,
-			email: formData.get("email") as string,
-			bio: (formData.get("bio") as string) || undefined,
-			language: formData.get("language") as "ko" | "en" | "ja",
-			notifications: formData.get("notifications") === "on",
-		};
-
-		const result = profileSchema.safeParse(data);
-		if (!result.success) {
-			return { profileError: result.error.issues[0].message };
+		const validation = validateFormData(profileSchema, formData);
+		if (!validation.success) {
+			return { profileErrors: validation.errors };
 		}
 
 		// TODO: 프로필 업데이트 로직 (DB 저장)
@@ -87,37 +73,29 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
 
 	// 비밀번호 변경
 	if (actionType === "changePassword") {
-		const currentPassword = formData.get("currentPassword") as string | null;
-		const newPassword = formData.get("newPassword") as string | null;
-		const newPasswordConfirm = formData.get(
-			"newPasswordConfirm",
-		) as string | null;
-
-		const result = changePasswordSchema.safeParse({
-			currentPassword,
-			newPassword,
-			newPasswordConfirm,
-		});
-
-		if (!result.success) {
-			return { passwordError: "입력값이 올바르지 않습니다." };
+		const validation = validateFormData(changePasswordSchema, formData);
+		if (!validation.success) {
+			return { passwordErrors: validation.errors };
 		}
 
 		try {
 			await changePasswordWithCurrent({
 				request,
 				context,
-				currentPassword: result.data.currentPassword,
-				newPassword: result.data.newPassword,
+				currentPassword: validation.data.currentPassword,
+				newPassword: validation.data.newPassword,
 				revokeOtherSessions: true,
 			});
 
 			return { passwordSuccess: "비밀번호가 성공적으로 변경되었습니다." };
 		} catch (error) {
-			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "비밀번호 변경에 실패했습니다.";
+			console.error("비밀번호 변경 실패:", error);
+
+			const errorMessage = getAuthErrorMessage(
+				error,
+				"비밀번호 변경에 실패했습니다.",
+			);
+
 			return { passwordError: errorMessage };
 		}
 	}
@@ -132,39 +110,20 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
  * - 2단계 인증 (미구현)
  */
 export default function Settings({ actionData }: Route.ComponentProps) {
-	// 프로필 폼
-	const profileForm = useForm<ProfileFormData>({
-		resolver: zodResolver(profileSchema),
-		defaultValues: {
-			fullName: "",
-			email: "",
-			bio: "",
-			language: "ko",
-			notifications: true,
-		},
-	});
+	// 클라이언트 상태로 관리
+	const [language, setLanguage] = useState<"ko" | "en" | "ja">("ko");
+	const [notifications, setNotifications] = useState(true);
+	const [bio, setBio] = useState("");
 
-	// 비밀번호 변경 폼 (useFetcher 사용)
-	const passwordFetcher = useFetcher<typeof action>();
-	const passwordForm = useForm<ChangePasswordFormData>({
-		resolver: zodResolver(changePasswordSchema),
-		defaultValues: {
-			currentPassword: "",
-			newPassword: "",
-			newPasswordConfirm: "",
-		},
-	});
-
-	const isPasswordSubmitting = passwordFetcher.state === "submitting";
-	const passwordSuccess = passwordFetcher.data?.passwordSuccess;
-	const passwordError = passwordFetcher.data?.passwordError;
-
-	const onPasswordSubmit = (data: ChangePasswordFormData) => {
-		passwordFetcher.submit(
-			{ ...data, _action: "changePassword" },
-			{ method: "post" },
-		);
-	};
+	// 성공 메시지는 sonner로 표시
+	useEffect(() => {
+		if (actionData?.profileSuccess) {
+			toast.success(actionData.profileSuccess);
+		}
+		if (actionData?.passwordSuccess) {
+			toast.success(actionData.passwordSuccess);
+		}
+	}, [actionData?.profileSuccess, actionData?.passwordSuccess]);
 
 	return (
 		<div className="space-y-6">
@@ -185,115 +144,89 @@ export default function Settings({ actionData }: Route.ComponentProps) {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Form {...profileForm}>
-						<form method="post" className="space-y-6">
-							<input type="hidden" name="_action" value="updateProfile" />
+					<Form method="post" className="space-y-6">
+						<input type="hidden" name="_action" value="updateProfile" />
 
-							{actionData?.profileError && (
-								<div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-									{actionData.profileError}
-								</div>
-							)}
-							{actionData?.profileSuccess && (
-								<div className="rounded-lg bg-green-500/10 p-3 text-sm text-green-600">
-									{actionData.profileSuccess}
-								</div>
-							)}
+						{/* 일반 에러 메시지 */}
+						{actionData?.profileError && (
+							<div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+								{actionData.profileError}
+							</div>
+						)}
 
-							<FormField
-								control={profileForm.control}
-								name="fullName"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>이름</FormLabel>
-										<FormControl>
-											<Input {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							name="fullName"
+							label="이름"
+							type="text"
+							required
+							errors={actionData?.profileErrors?.fullName?._errors}
+						/>
 
-							<FormField
-								control={profileForm.control}
-								name="email"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>이메일</FormLabel>
-										<FormControl>
-											<Input type="email" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							name="email"
+							label="이메일"
+							type="email"
+							required
+							errors={actionData?.profileErrors?.email?._errors}
+						/>
 
-							<FormField
-								control={profileForm.control}
+						{/* Textarea - 클라이언트 상태로 관리 */}
+						<div className="space-y-2">
+							<Label htmlFor="bio">자기소개</Label>
+							<Textarea
+								id="bio"
 								name="bio"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>자기소개</FormLabel>
-										<FormControl>
-											<Textarea rows={4} {...field} />
-										</FormControl>
-										<FormDescription>
-											{field.value?.length ?? 0}/500
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
+								rows={4}
+								value={bio}
+								onChange={(e) => setBio(e.target.value)}
+								maxLength={500}
 							/>
+							<p className="text-sm text-muted-foreground">
+								{bio.length}/500
+							</p>
+							{actionData?.profileErrors?.bio?._errors && (
+								<p className="text-sm text-destructive">
+									{actionData.profileErrors.bio._errors[0]}
+								</p>
+							)}
+						</div>
 
-							<FormField
-								control={profileForm.control}
-								name="language"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>언어</FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-										>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="ko">한국어</SelectItem>
-												<SelectItem value="en">English</SelectItem>
-												<SelectItem value="ja">日本語</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						{/* Select - hidden input + 클라이언트 상태 */}
+						<div className="space-y-2">
+							<Label htmlFor="language">언어</Label>
+							<input type="hidden" name="language" value={language} />
+							<Select value={language} onValueChange={(value) => setLanguage(value as "ko" | "en" | "ja")}>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="ko">한국어</SelectItem>
+									<SelectItem value="en">English</SelectItem>
+									<SelectItem value="ja">日本語</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 
-							<FormField
-								control={profileForm.control}
+						{/* Switch - hidden input + 클라이언트 상태 */}
+						<div className="flex flex-row items-center justify-between rounded-lg border p-4">
+							<div className="space-y-0.5">
+								<Label className="text-base">알림 수신</Label>
+								<p className="text-sm text-muted-foreground">
+									이메일 알림을 받으시겠습니까?
+								</p>
+							</div>
+							<input
+								type="hidden"
 								name="notifications"
-								render={({ field }) => (
-									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-										<div className="space-y-0.5">
-											<FormLabel className="text-base">알림 수신</FormLabel>
-											<FormDescription>
-												이메일 알림을 받으시겠습니까?
-											</FormDescription>
-										</div>
-										<FormControl>
-											<Switch
-												checked={field.value}
-												onCheckedChange={field.onChange}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
+								value={notifications ? "on" : "off"}
 							/>
+							<Switch
+								checked={notifications}
+								onCheckedChange={setNotifications}
+							/>
+						</div>
 
-							<Button type="submit">변경사항 저장</Button>
-						</form>
+						<SubmitButton>변경사항 저장</SubmitButton>
 					</Form>
 				</CardContent>
 			</Card>
@@ -307,69 +240,43 @@ export default function Settings({ actionData }: Route.ComponentProps) {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{passwordSuccess && (
-						<Alert className="mb-4">
-							<AlertDescription>{passwordSuccess}</AlertDescription>
-						</Alert>
-					)}
+					<Form method="post" className="space-y-4">
+						<input type="hidden" name="_action" value="changePassword" />
 
-					{passwordError && (
-						<Alert variant="destructive" className="mb-4">
-							<AlertDescription>{passwordError}</AlertDescription>
-						</Alert>
-					)}
+						{/* 일반 에러 메시지 */}
+						{actionData?.passwordError && (
+							<div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+								{actionData.passwordError}
+							</div>
+						)}
 
-					<Form {...passwordForm}>
-						<form
-							onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
-							className="space-y-4"
-						>
-							<FormField
-								control={passwordForm.control}
-								name="currentPassword"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>현재 비밀번호</FormLabel>
-										<FormControl>
-											<Input type="password" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							name="currentPassword"
+							label="현재 비밀번호"
+							type="password"
+							required
+							errors={actionData?.passwordErrors?.currentPassword?._errors}
+						/>
 
-							<FormField
-								control={passwordForm.control}
-								name="newPassword"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>새 비밀번호</FormLabel>
-										<FormControl>
-											<Input type="password" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							name="newPassword"
+							label="새 비밀번호"
+							type="password"
+							required
+							errors={actionData?.passwordErrors?.newPassword?._errors}
+						/>
 
-							<FormField
-								control={passwordForm.control}
-								name="newPasswordConfirm"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>새 비밀번호 확인</FormLabel>
-										<FormControl>
-											<Input type="password" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							name="newPasswordConfirm"
+							label="새 비밀번호 확인"
+							type="password"
+							required
+							errors={actionData?.passwordErrors?.newPasswordConfirm?._errors}
+						/>
 
-							<Button type="submit" disabled={isPasswordSubmitting}>
-								{isPasswordSubmitting ? "변경 중..." : "비밀번호 변경"}
-							</Button>
-						</form>
+						<SubmitButton loadingText="변경 중...">
+							비밀번호 변경
+						</SubmitButton>
 					</Form>
 				</CardContent>
 			</Card>

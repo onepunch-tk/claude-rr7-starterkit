@@ -13,7 +13,7 @@ import {
  *
  * @param args - 미들웨어 컨텍스트
  * @returns 사용자 정보
- * @throws redirect - 인증되지 않은 경우 /auth/login으로 리다이렉트
+ * @throws redirect - 인증되지 않은 경우 /auth/signin?redirectTo=원래URL로 리다이렉트
  *
  * @example
  * ```tsx
@@ -31,9 +31,10 @@ export const requireAuth = async ({
 	const session = await auth.api.getSession({ headers: request.headers });
 
 	if (!session?.user) {
+		// 원래 가고자 했던 URL을 redirectTo 파라미터로 전달
 		const url = new URL(request.url);
-		const redirectTo = url.pathname + url.search;
-		throw redirect(`/auth/signin?redirectTo=${encodeURIComponent(redirectTo)}`);
+		const redirectTo = encodeURIComponent(url.pathname + url.search);
+		throw redirect(`/auth/signin?redirectTo=${redirectTo}`);
 	}
 
 	return session.user as User;

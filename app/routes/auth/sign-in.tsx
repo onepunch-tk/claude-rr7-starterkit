@@ -1,12 +1,10 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Github, LogOut } from "lucide-react";
-import { useForm } from "react-hook-form";
 import type { ActionFunctionArgs } from "react-router";
 import {
 	Form,
 	Link,
 	redirect,
-	useFetcher,
+	useActionData,
 	useOutletContext,
 	useSearchParams,
 } from "react-router";
@@ -20,22 +18,15 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import {
-	Form as FormComponent,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
+import { FormField, SubmitButton } from "~/components/forms";
 import type { User } from "~/db/schema";
 import {
 	type AuthActionResponse,
-	type LoginFormData,
 	loginSchema,
 } from "~/features/auth/types";
+import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
 import { signInWithCredentials } from "~/lib/auth.server";
+import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/sign-in";
 
 /**
@@ -52,8 +43,6 @@ export const meta: Route.MetaFunction = () => [
 
 /**
  * 서버 사이드 로그인 처리
- *
- * useFetcher와 함께 작동하여 폼 제출을 처리
  */
 export const action = async ({
 	request,
@@ -64,55 +53,48 @@ export const action = async ({
 	}
 
 	const formData = await request.formData();
-	const email = formData.get("email") as string | null;
-	const password = formData.get("password") as string | null;
 
-	// 폼 검증
-	const result = loginSchema.safeParse({ email, password });
-	if (!result.success) {
-		return { error: "이메일과 비밀번호를 입력해주세요." };
+	// Zod 검증
+	const validation = validateFormData(loginSchema, formData);
+	if (!validation.success) {
+		return { errors: validation.errors };
 	}
 
 	try {
-		// 서버 사이드 로그인
-		await signInWithCredentials({
+		// 로그인 및 Set-Cookie 헤더 받기
+		const { setCookie } = await signInWithCredentials({
 			request,
 			context,
-			email: result.data.email,
-			password: result.data.password,
+			email: validation.data.email,
+			password: validation.data.password,
 		});
 
-		// redirectTo 파라미터 처리
+		// redirectTo 파라미터 확인 (없으면 대시보드로)
 		const url = new URL(request.url);
-		const redirectTo = url.searchParams.get("redirectTo");
+		const redirectTo = url.searchParams.get("redirectTo") || "/my/dashboard";
 
-		// Open Redirect 방지: 내부 URL만 허용
-		const isInternalUrl =
-			redirectTo?.startsWith("/") && !redirectTo.startsWith("//");
-		const destination = isInternalUrl && redirectTo ? redirectTo : "/dashboard";
-
-		return redirect(destination);
+		// Set-Cookie 헤더를 포함한 리다이렉트
+		return redirect(redirectTo, {
+			headers: setCookie ? { "Set-Cookie": setCookie } : undefined,
+		});
 	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : "로그인에 실패했습니다.";
+		// 에러 로깅 (디버깅용)
+		console.error("로그인 실패:", error);
+
+		// Better-auth 에러를 사용자 친화적인 메시지로 변환
+		const errorMessage = getAuthErrorMessage(
+			error,
+			"로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
+		);
+
 		return { error: errorMessage };
 	}
 };
 
 export default function SignIn() {
 	const { user } = useOutletContext<{ user: User | null }>();
-	const fetcher = useFetcher<typeof action>();
+	const actionData = useActionData<typeof action>();
 	const [searchParams] = useSearchParams();
-
-	const form = useForm<LoginFormData>({
-		resolver: zodResolver(loginSchema),
-		defaultValues: {
-			email: "",
-			password: "",
-		},
-	});
-
-	const isSubmitting = fetcher.state === "submitting";
 
 	// 로그인 상태: "이미 로그인됨" UI 표시
 	if (user) {
@@ -128,7 +110,7 @@ export default function SignIn() {
 
 					<CardContent className="space-y-3">
 						<Button asChild className="w-full">
-							<Link to="/dashboard">대시보드로 이동</Link>
+							<Link to="/my/dashboard">대시보드로 이동</Link>
 						</Button>
 
 						<div className="relative">
@@ -156,20 +138,17 @@ export default function SignIn() {
 	}
 
 	// 미로그인 상태: 로그인 폼
-	const onSubmit = (data: LoginFormData) => {
-		fetcher.submit(data, { method: "post" });
-	};
-
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
 			<Card className="w-full max-w-md">
-			<CardHeader>
-				<CardTitle>로그인</CardTitle>
-				<CardDescription>계정에 로그인하여 서비스를 이용하세요</CardDescription>
-			</CardHeader>
+				<CardHeader>
+					<CardTitle>로그인</CardTitle>
+					<CardDescription>
+						계정에 로그인하여 서비스를 이용하세요
+					</CardDescription>
+				</CardHeader>
 
-			<FormComponent {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)}>
+				<Form method="post">
 					<CardContent className="space-y-4">
 						{/* 회원가입 성공 메시지 */}
 						{searchParams.get("message") === "email-verification-sent" && (
@@ -181,55 +160,43 @@ export default function SignIn() {
 							</Alert>
 						)}
 
-						{/* 에러 메시지 */}
-						{fetcher.data?.error && (
-							<Alert variant="destructive">
-								<AlertDescription>{fetcher.data.error}</AlertDescription>
-							</Alert>
+						{/* 일반 에러 메시지 */}
+						{actionData?.error && (
+							<p className="text-sm text-destructive">{actionData.error}</p>
 						)}
 
 						{/* 이메일 필드 */}
 						<FormField
-							control={form.control}
 							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>이메일</FormLabel>
-									<FormControl>
-										<Input type="email" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
+							label="이메일"
+							type="email"
+							required
+							errors={actionData?.errors?.email?._errors}
 						/>
 
 						{/* 비밀번호 필드 */}
 						<FormField
-							control={form.control}
 							name="password"
-							render={({ field }) => (
-								<FormItem>
-									<div className="flex items-center justify-between">
-										<FormLabel>비밀번호</FormLabel>
-										<Link
-											to="/auth/forgot-password"
-											className="text-sm text-primary hover:underline"
-										>
-											비밀번호를 잊으셨나요?
-										</Link>
-									</div>
-									<FormControl>
-										<Input type="password" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
+							label="비밀번호"
+							type="password"
+							required
+							errors={actionData?.errors?.password?._errors}
 						/>
 
+						{/* 비밀번호 찾기 링크 */}
+						<div className="flex justify-end -mt-1">
+							<Link
+								to="/auth/forgot-password"
+								className="text-sm text-primary hover:underline"
+							>
+								비밀번호를 잊으셨나요?
+							</Link>
+						</div>
+
 						{/* 로그인 버튼 */}
-						<Button type="submit" className="w-full" disabled={isSubmitting}>
-							{isSubmitting ? "로그인 중..." : "로그인"}
-						</Button>
+						<SubmitButton className="w-full" loadingText="로그인 중...">
+							로그인
+						</SubmitButton>
 
 						{/* 구분선 */}
 						<div className="relative">
@@ -263,13 +230,15 @@ export default function SignIn() {
 					<CardFooter className="flex justify-center">
 						<p className="text-sm text-muted-foreground">
 							계정이 없으신가요?{" "}
-							<Link to="/auth/signup" className="text-primary hover:underline">
+							<Link
+								to="/auth/signup"
+								className="text-primary hover:underline"
+							>
 								회원가입
 							</Link>
 						</p>
 					</CardFooter>
-				</form>
-			</FormComponent>
+				</Form>
 			</Card>
 		</div>
 	);

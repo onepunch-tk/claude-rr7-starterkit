@@ -1,9 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import type { ActionFunctionArgs } from "react-router";
-import { Link, useFetcher } from "react-router";
+import { Form, Link, useActionData } from "react-router";
+import { FormField, SubmitButton } from "~/components/forms";
 import { Alert, AlertDescription } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -13,20 +11,11 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import {
 	type AuthActionResponse,
-	type ForgotPasswordFormData,
 	forgotPasswordSchema,
 } from "~/features/auth/types";
 import { requestPasswordReset } from "~/lib/auth.server";
+import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/forgot-password";
 
 /**
@@ -41,8 +30,6 @@ export const meta: Route.MetaFunction = () => [
 
 /**
  * 서버 사이드 비밀번호 재설정 요청 처리
- *
- * useFetcher와 함께 작동하여 폼 제출을 처리
  */
 export const action = async ({
 	request,
@@ -53,12 +40,11 @@ export const action = async ({
 	}
 
 	const formData = await request.formData();
-	const email = formData.get("email") as string | null;
 
-	// 폼 검증
-	const result = forgotPasswordSchema.safeParse({ email });
-	if (!result.success) {
-		return { error: "유효한 이메일을 입력해주세요." };
+	// Zod 검증
+	const validation = validateFormData(forgotPasswordSchema, formData);
+	if (!validation.success) {
+		return { errors: validation.errors };
 	}
 
 	try {
@@ -66,7 +52,7 @@ export const action = async ({
 		await requestPasswordReset({
 			request,
 			context,
-			email: result.data.email,
+			email: validation.data.email,
 		});
 
 		// 성공: 성공 메시지 반환 (보안상 이메일 노출하지 않음)
@@ -80,24 +66,10 @@ export const action = async ({
 };
 
 export default function ForgotPassword() {
-	const fetcher = useFetcher<typeof action>();
-
-	const form = useForm<ForgotPasswordFormData>({
-		resolver: zodResolver(forgotPasswordSchema),
-		defaultValues: {
-			email: "",
-		},
-	});
-
-	const isSubmitting = fetcher.state === "submitting";
-	const isSuccess = fetcher.data?.success === true;
-
-	const onSubmit = (data: ForgotPasswordFormData) => {
-		fetcher.submit(data, { method: "post" });
-	};
+	const actionData = useActionData<typeof action>();
 
 	// 성공 상태: 안내 메시지 표시
-	if (isSuccess) {
+	if (actionData?.success === true) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
 				<Card className="w-full max-w-md">
@@ -141,47 +113,37 @@ export default function ForgotPassword() {
 					</CardDescription>
 				</CardHeader>
 
-				<Form {...form}>
-					<form onSubmit={form.handleSubmit(onSubmit)}>
-						<CardContent className="space-y-4">
-							{/* 에러 메시지 */}
-							{fetcher.data?.error && (
-								<Alert variant="destructive">
-									<AlertDescription>{fetcher.data.error}</AlertDescription>
-								</Alert>
-							)}
+				<Form method="post">
+					<CardContent className="space-y-4">
+						{/* 일반 에러 메시지 */}
+						{actionData?.error && (
+							<p className="text-sm text-destructive">{actionData.error}</p>
+						)}
 
-							{/* 이메일 필드 */}
-							<FormField
-								control={form.control}
-								name="email"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>이메일</FormLabel>
-										<FormControl>
-											<Input type="email" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						{/* 이메일 필드 */}
+						<FormField
+							name="email"
+							label="이메일"
+							type="email"
+							required
+							errors={actionData?.errors?.email?._errors}
+						/>
 
-							{/* 전송 버튼 */}
-							<Button type="submit" className="w-full" disabled={isSubmitting}>
-								{isSubmitting ? "전송 중..." : "재설정 링크 전송"}
-							</Button>
-						</CardContent>
+						{/* 전송 버튼 */}
+						<SubmitButton className="w-full" loadingText="전송 중...">
+							재설정 링크 전송
+						</SubmitButton>
+					</CardContent>
 
-						{/* 로그인 링크 */}
-						<CardFooter className="flex justify-center">
-							<Link
-								to="/auth/signin"
-								className="text-sm text-primary hover:underline"
-							>
-								로그인으로 돌아가기
-							</Link>
-						</CardFooter>
-					</form>
+					{/* 로그인 링크 */}
+					<CardFooter className="flex justify-center">
+						<Link
+							to="/auth/signin"
+							className="text-sm text-primary hover:underline"
+						>
+							로그인으로 돌아가기
+						</Link>
+					</CardFooter>
 				</Form>
 			</Card>
 		</div>

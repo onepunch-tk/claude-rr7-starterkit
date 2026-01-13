@@ -232,8 +232,15 @@ export const signOut = async ({ request, context }: MiddlewareContext) => {
  *
  * Better-auth의 signInEmail API를 호출합니다.
  *
+ * **중요**:
+ * - React Router Framework에서는 서버 액션에서 쿠키가 자동으로 설정되지 않음
+ * - returnHeaders: true 옵션으로 Set-Cookie 헤더를 추출하여 반환
+ * - 호출자는 반환된 setCookie를 redirect Response에 포함해야 함
+ * - 로그인 실패 시 Error throw (catch 블록에서 처리 필요)
+ *
  * @param args - 로그인 정보
- * @throws Error 로그인 실패 시
+ * @returns { data, setCookie } - data는 { user, session }, setCookie는 Set-Cookie 헤더 값
+ * @throws Error 로그인 실패 시 (잘못된 인증 정보, 이메일 미인증 등)
  */
 export const signInWithCredentials = async ({
 	request,
@@ -247,10 +254,18 @@ export const signInWithCredentials = async ({
 	password: string;
 }) => {
 	const auth = createAuthFromContext(context);
-	return await auth.api.signInEmail({
+
+	// returnHeaders: true로 응답 헤더 받기
+	const { headers: responseHeaders } = await auth.api.signInEmail({
 		body: { email, password },
 		headers: request.headers,
+		returnHeaders: true,
 	});
+
+	// Set-Cookie 헤더 추출하여 반환
+	const setCookie = responseHeaders?.get("set-cookie");
+
+	return { setCookie };
 };
 
 /**

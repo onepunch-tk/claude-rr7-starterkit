@@ -90,21 +90,21 @@ function SidebarProvider({
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
 	}, [isMobile, setOpen, setOpenMobile]);
 
-	// Adds a keyboard shortcut to toggle the sidebar.
-	React.useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (
-				event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-				(event.metaKey || event.ctrlKey)
-			) {
-				event.preventDefault();
-				toggleSidebar();
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [toggleSidebar]);
+	// 키보드 단축키 비활성화됨 (사용자 요청)
+	// React.useEffect(() => {
+	// 	const handleKeyDown = (event: KeyboardEvent) => {
+	// 		if (
+	// 			event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+	// 			(event.metaKey || event.ctrlKey)
+	// 		) {
+	// 			event.preventDefault();
+	// 			toggleSidebar();
+	// 		}
+	// 	};
+	//
+	// 	window.addEventListener("keydown", handleKeyDown);
+	// 	return () => window.removeEventListener("keydown", handleKeyDown);
+	// }, [toggleSidebar]);
 
 	// We add a state so that we can do data-state="expanded" or "collapsed".
 	// This makes it easier to style the sidebar with Tailwind classes.
@@ -371,7 +371,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
 			data-slot="sidebar-content"
 			data-sidebar="content"
 			className={cn(
-				"flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+				"flex min-h-0 flex-1 flex-col gap-2 overflow-auto pt-16 group-data-[collapsible=icon]:overflow-hidden",
 				className,
 			)}
 			{...props}

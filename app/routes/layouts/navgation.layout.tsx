@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Await, Outlet } from "react-router";
 import FooterSection from "~/components/footer-section";
 import NavigationBar from "~/components/navigation-bar";
+import { SidebarProvider } from "~/components/ui/sidebar";
 import { getOptionalAuth } from "~/middleware/auth.middleware";
 import type { Route } from "./+types/navgation.layout";
 
@@ -21,18 +22,22 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
 	const { user } = loaderData;
 
 	return (
-		<div className="flex min-h-screen flex-col bg-background">
-			<Suspense fallback={<NavigationBar loading={true} />}>
-				<Await resolve={user}>
-					{(user) => (user ? <NavigationBar user={user} /> : <NavigationBar />)}
-				</Await>
-			</Suspense>
+		<SidebarProvider>
+			<div className="flex min-h-screen w-full flex-col bg-background">
+				<Suspense fallback={<NavigationBar loading={true} />}>
+					<Await resolve={user}>
+						{(user) =>
+							user ? <NavigationBar user={user} /> : <NavigationBar />
+						}
+					</Await>
+				</Suspense>
 
-			<main className="flex-1">
-				<Outlet context={{ user }} />
-			</main>
+				<main className="flex-1">
+					<Outlet context={{ user }} />
+				</main>
 
-			<FooterSection />
-		</div>
+				<FooterSection />
+			</div>
+		</SidebarProvider>
 	);
 }

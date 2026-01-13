@@ -47,19 +47,19 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
  */
 export const resetPasswordSchema = z
 	.object({
-		password: z
+		newPassword: z
 			.string()
 			.min(8, "비밀번호는 최소 8자 이상이어야 합니다")
 			.regex(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
 				"비밀번호는 대소문자와 숫자를 포함해야 합니다",
 			),
-		passwordConfirm: z.string().min(1, "비밀번호 확인을 입력해주세요"),
+		newPasswordConfirm: z.string().min(1, "비밀번호 확인을 입력해주세요"),
 		token: z.string().min(1, "유효하지 않은 재설정 링크입니다"),
 	})
-	.refine((data) => data.password === data.passwordConfirm, {
+	.refine((data) => data.newPassword === data.newPasswordConfirm, {
 		message: "비밀번호가 일치하지 않습니다",
-		path: ["passwordConfirm"],
+		path: ["newPasswordConfirm"],
 	});
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
@@ -94,10 +94,13 @@ export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
  *
  * - error: 오류 메시지 (검증 실패, 인증 실패 등)
  * - success: 성공 여부 (forgot-password 등에서 사용)
+ * - errors: Zod 검증 에러 (필드별 에러 메시지)
  */
 export type AuthActionResponse = {
 	error?: string;
 	success?: boolean;
+	message?: string;
+	errors?: Record<string, { _errors: string[] }>;
 };
 
 /**
@@ -111,9 +114,13 @@ export type PasswordStrengthLevel = "weak" | "medium" | "strong";
  * - score: 0-100 점수
  * - level: 강도 레벨 (약함/보통/강함)
  * - message: 사용자에게 표시할 메시지
+ * - label: UI 표시용 레이블 (message와 동일)
+ * - colorClass: Tailwind CSS 색상 클래스
  */
 export interface PasswordStrength {
 	score: number;
 	level: PasswordStrengthLevel;
 	message: string;
+	label: string;
+	colorClass: string;
 }

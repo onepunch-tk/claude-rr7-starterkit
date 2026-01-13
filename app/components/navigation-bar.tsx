@@ -1,5 +1,5 @@
 import { LayoutDashboard, LogOut, Settings, User as UserIcon } from "lucide-react";
-import { Form, Link } from "react-router";
+import { Form, Link, useLocation } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	DropdownMenu,
@@ -9,6 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { SidebarTrigger } from "~/components/ui/sidebar";
 import type { User } from "~/db";
 
 interface UserMenuProps {
@@ -91,11 +92,15 @@ interface NavigationBarProps {
 }
 
 /**
- * 랜딩 페이지 네비게이션 바
+ * 네비게이션 바
  * - 상단 고정
- * - 로그인/시작하기 버튼 제공
+ * - 데스크톱: UserMenu 또는 로그인/시작하기 버튼
+ * - 모바일: 사이드바 토글 버튼 (app 페이지에서만)
  */
 export default function NavigationBar({ user, loading }: NavigationBarProps) {
+	const location = useLocation();
+	const isAppPage = location.pathname.startsWith("/my/");
+
 	return (
 		<nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
 			<div className="container flex h-16 items-center justify-between">
@@ -110,15 +115,23 @@ export default function NavigationBar({ user, loading }: NavigationBarProps) {
 				</Link>
 
 				{/* 버튼 영역 */}
-				<div className="hidden items-center gap-2 md:flex">
-					{loading ? (
-						<div className="flex items-center">
-							<div className="bg-muted-foreground/20 size-8 animate-pulse rounded-lg" />
-						</div>
-					) : user ? (
-						<UserMenu user={user} />
-					) : (
-						<AuthButtons />
+				<div className="flex items-center gap-2">
+					{/* 데스크톱: UserMenu 또는 AuthButtons */}
+					<div className="hidden md:flex items-center gap-2">
+						{loading ? (
+							<div className="flex items-center">
+								<div className="bg-muted-foreground/20 size-8 animate-pulse rounded-lg" />
+							</div>
+						) : user ? (
+							<UserMenu user={user} />
+						) : (
+							<AuthButtons />
+						)}
+					</div>
+
+					{/* 모바일: 사이드바 토글 버튼 (app 페이지에서만) */}
+					{user && isAppPage && (
+						<SidebarTrigger className="md:hidden" />
 					)}
 				</div>
 			</div>
