@@ -88,6 +88,11 @@ commit 또는 sync 선택 시, **대화 흐름으로 메시지를 요청**한다
 - 커밋 메시지: **한국어**
 - 변수/함수명: **영문**
 
+### 금지 사항 [중요]
+
+- **절대 `Co-Authored-By` 패턴을 커밋 메시지에 포함하지 않는다.**
+- 예: `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>` ❌
+
 ## 참조 문서
 
 - [커밋 워크플로우](references/commit.md)
