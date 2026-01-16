@@ -8,6 +8,7 @@ import {
 	useOutletContext,
 	useSearchParams,
 } from "react-router";
+import { FormField, SubmitButton } from "~/components/forms";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import {
@@ -18,14 +19,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { FormField, SubmitButton } from "~/components/forms";
+import { Label } from "~/components/ui/label";
 import type { User } from "~/db/schema";
-import {
-	type AuthActionResponse,
-	loginSchema,
-} from "~/features/auth/types";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
-import { signInWithCredentials } from "~/lib/auth.server";
+import { type AuthActionResponse, loginSchema } from "~/features/auth/types";
+import { signInWithCredentials, signInWithSocials } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/sign-in";
 
@@ -53,6 +51,39 @@ export const action = async ({
 	}
 
 	const formData = await request.formData();
+	const provider = formData.get("provider");
+
+	if (provider) {
+		try {
+			const {
+				headers: responseHeader,
+				response: { redirect: canRedirect, url },
+			} = await signInWithSocials({
+				request,
+				context,
+				provider: "github",
+			});
+
+			if (!canRedirect || !url) {
+				return { error: "소셜 로그인 URL을 생성할 수 없습니다." };
+			}
+
+			const headers = new Headers();
+			for (const cookie of responseHeader.getSetCookie()) {
+				headers.append("Set-Cookie", cookie);
+			}
+
+			return redirect(url, {
+				headers,
+			});
+		} catch (error) {
+			const errorMessage = getAuthErrorMessage(
+				error,
+				"소셜 로그인에 실패했습니다.",
+			);
+			return { error: errorMessage };
+		}
+	}
 
 	// Zod 검증
 	const validation = validateFormData(loginSchema, formData);
@@ -209,35 +240,28 @@ export default function SignIn() {
 								</span>
 							</div>
 						</div>
-
-						{/* GitHub OAuth 로그인 */}
-						<Button
-							type="button"
-							variant="outline"
-							className="w-full"
-							onClick={() => {
-								// Better-auth API 엔드포인트로 직접 이동
-								const callbackURL = `${new URL(window.location.href).origin}/dashboard`;
-								window.location.href = `/auth/api/sign-in/social/github?callbackURL=${encodeURIComponent(callbackURL)}`;
-							}}
-						>
-							<Github className="mr-2 h-4 w-4" />
-							GitHub로 로그인
-						</Button>
 					</CardContent>
 
 					{/* 회원가입 링크 */}
 					<CardFooter className="flex justify-center">
 						<p className="text-sm text-muted-foreground">
 							계정이 없으신가요?{" "}
-							<Link
-								to="/auth/signup"
-								className="text-primary hover:underline"
-							>
+							<Link to="/auth/signup" className="text-primary hover:underline">
 								회원가입
 							</Link>
 						</p>
 					</CardFooter>
+				</Form>
+
+				<Form method="post">
+					<CardContent className="space-y-4">
+						{/* GitHub OAuth 로그인 */}
+						<input type="hidden" name="provider" defaultValue="github" />
+						<Button type="submit" variant="outline" className="w-full">
+							<Github className="mr-2 h-4 w-4" />
+							GitHub로 로그인
+						</Button>
+					</CardContent>
 				</Form>
 			</Card>
 		</div>

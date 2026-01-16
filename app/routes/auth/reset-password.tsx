@@ -21,7 +21,7 @@ import {
 	type AuthActionResponse,
 	resetPasswordSchema,
 } from "~/features/auth/types";
-import { resetPasswordWithToken } from "~/lib/auth.server";
+import { resetPasswordWithToken } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/reset-password";
 

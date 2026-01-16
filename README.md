@@ -444,6 +444,9 @@ app/
 ├── components/          # 모든 React 컴포넌트 (UI만)
 │   ├── ui/             # shadcn/ui 기본 컴포넌트
 │   ├── forms/          # FormField, SubmitButton 등
+│   ├── email/          # 이메일 템플릿 컴포넌트
+│   │   ├── password-reset-email.tsx
+│   │   └── verification-email.tsx
 │   ├── app-sidebar.tsx
 │   ├── navigation-bar.tsx
 │   └── (기타 섹션 컴포넌트들)
@@ -451,7 +454,12 @@ app/
 ├── features/           # 도메인별 비즈니스 로직
 │   ├── auth/
 │   │   ├── api/       # Better-auth API 라우트
-│   │   ├── lib/       # 도메인 전용 헬퍼
+│   │   ├── lib/       # 인증 관련 모듈
+│   │   │   ├── auth.const.ts     # 쿠키 상수 및 헬퍼
+│   │   │   ├── auth.server.ts    # Better-auth 서버 + CLI용 인스턴스
+│   │   │   ├── auth.client.ts    # Better-auth 클라이언트
+│   │   │   ├── error-handler.ts  # 에러 메시지 처리
+│   │   │   └── password-strength.ts # 비밀번호 강도 검사
 │   │   ├── services/  # 비즈니스 로직 함수
 │   │   ├── errors.ts  # 에러 처리
 │   │   └── types.ts   # 타입 & Zod 스키마
@@ -459,14 +467,13 @@ app/
 │       └── services/  # 사용자 관련 로직
 │
 ├── lib/                 # 앱 전체 설정 & 유틸리티
-│   ├── auth.server.ts   # Better-auth 서버
-│   ├── auth.client.ts   # Better-auth 클라이언트
 │   ├── email.server.ts  # Resend 이메일 서비스
 │   ├── form-helpers.ts  # Form 검증 유틸
 │   └── utils.ts         # 공통 유틸리티
 │
 ├── db/                 # 데이터베이스 계층
-│   ├── schema.ts      # Drizzle 스키마
+│   ├── auth-schema.ts # Better-auth CLI 자동 생성 스키마
+│   ├── schema.ts      # 앱 전용 스키마 + auth-schema 재export
 │   ├── relations.ts   # 테이블 관계
 │   └── index.ts       # DB 클라이언트
 │
@@ -595,13 +602,13 @@ export const signupSchema = z.object({
 
 **차이점**:
 ```typescript
-// ✅ lib/ - 앱 전체 설정
-lib/auth.server.ts      // Better-auth 초기화 (모든 feature 사용)
+// ✅ lib/ - 앱 전체 인프라
 lib/email.server.ts     // 이메일 전송 인프라 (여러 feature 사용)
 
 // ✅ features/ - 도메인 비즈니스 로직
-features/auth/services/ // 인증 관련 비즈니스 로직만
-features/user/services/ // 사용자 관련 비즈니스 로직만
+features/auth/lib/      // 인증 관련 모듈 (auth.server.ts, auth.client.ts 등)
+features/auth/services/ // 인증 관련 비즈니스 로직
+features/user/services/ // 사용자 관련 비즈니스 로직
 ```
 
 ---
@@ -805,6 +812,77 @@ bun run db:push
 bun run db:studio
 ```
 
+### Better-auth CLI 스키마 생성
+
+Better-auth CLI를 사용하여 인증 테이블 스키마를 자동 생성할 수 있습니다:
+
+```bash
+# Better-auth 스키마 생성
+bun run db:auth
+
+# 또는 직접 CLI 실행
+bunx @better-auth/cli generate --config app/features/auth/lib/auth.server.ts --output app/db/auth-schema.ts
+```
+
+**스키마 분리 구조**:
+```
+app/db/
+├── auth-schema.ts  # Better-auth CLI가 자동 생성한 인증 테이블
+│   ├── user        # 사용자 테이블
+│   ├── session     # 세션 테이블
+│   ├── account     # OAuth 계정 테이블
+│   └── verification # 이메일 인증 토큰 테이블
+│
+└── schema.ts       # 앱 전용 테이블 + auth-schema 재export
+    ├── (auth-schema에서 import)
+    ├── twoFactorTable  # 2FA 테이블
+    └── profilesTable   # 프로필 테이블
+```
+
+**auth-schema.ts 특징**:
+- Better-auth CLI가 자동 생성하며, 수동 수정 불필요
+- 테이블 간 relations 자동 정의 (userRelations, sessionRelations, accountRelations)
+- 성능을 위한 인덱스 자동 추가 (session_userId_idx, account_userId_idx, verification_identifier_idx)
+
+**schema.ts에서 사용**:
+```typescript
+// app/db/schema.ts
+import {
+  user,
+  session,
+  account,
+  verification,
+  userRelations,
+  sessionRelations,
+  accountRelations,
+} from "./auth-schema";
+
+// 별칭으로 재export (기존 코드와의 호환성 유지)
+export {
+  user as userTable,
+  session as sessionTable,
+  account as accountTable,
+  verification as verificationTable,
+  userRelations,
+  sessionRelations,
+  accountRelations,
+};
+
+// 앱 전용 테이블 정의
+export const profilesTable = pgTable("profiles", { ... });
+```
+
+**CLI용 정적 auth 인스턴스** (`app/features/auth/lib/auth.server.ts`):
+```typescript
+// CLI 스키마 생성 및 로컬 개발용 정적 인스턴스
+// Cloudflare Workers 환경에서는 createAuthFromContext 사용
+export const auth = createAuth(
+  process.env.DATABASE_URL!,
+  process.env.BASE_URL!,
+  // ... OAuth 설정
+);
+```
+
 ## 🔐 인증 시스템
 
 이 프로젝트는 **Better-auth**를 사용하여 인증을 처리합니다. Better-auth는 프레임워크 독립적인 TypeScript 인증 라이브러리로, Drizzle ORM과 완벽하게 통합됩니다.
@@ -898,9 +976,9 @@ export const sendPasswordResetEmail = async (
 ) => { ... };
 ```
 
-**이메일 템플릿** (`app/components/`)
-- `VerificationEmail`: 이메일 인증 템플릿
-- `PasswordResetEmail`: 비밀번호 재설정 템플릿
+**이메일 템플릿** (`app/components/email/`)
+- `verification-email.tsx`: 이메일 인증 템플릿
+- `password-reset-email.tsx`: 비밀번호 재설정 템플릿
 - `EmailLayout`: 공통 레이아웃
 
 **Better-auth 콜백 설정** (`app/lib/auth.server.ts`)
@@ -922,13 +1000,18 @@ emailAndPassword: {
 
 ### Better-auth 구조
 
-#### 1. 서버 설정 (`app/lib/auth.server.ts`)
+#### 1. 서버 설정 (`app/features/auth/lib/auth.server.ts`)
 
 모든 인증 로직이 이 파일에 집중되어 있습니다:
 
 ```typescript
-// Better-auth 인스턴스 생성
-export const createAuthInstance = (...)
+// Better-auth 인스턴스 생성 (내부 함수)
+const createAuth = (...)
+
+// CLI용 정적 auth 인스턴스
+export const auth = createAuth(...)
+
+// Context 기반 인스턴스 생성
 export const createAuthFromContext = (context)
 
 // 서버 사이드 헬퍼 함수 (action에서 사용)
@@ -945,7 +1028,25 @@ export const resetPasswordWithToken = async (...)    // 비밀번호 재설정 �
 - 이메일 인증 및 비밀번호 재설정
 - 모든 헬퍼 함수는 **서버 사이드 action에서만 사용**
 
-#### 2. 클라이언트 설정 (`app/lib/auth.client.ts`)
+#### 2. 상수 설정 (`app/features/auth/lib/auth.const.ts`)
+
+쿠키 관련 상수를 중앙 집중화:
+
+```typescript
+// 쿠키 접두사
+export const COOKIE_PREFIX = "cc-rr7";
+
+// 세션 쿠키 이름들
+export const SESSION_COOKIE_NAMES = [
+  `${COOKIE_PREFIX}.session_token`,
+  `${COOKIE_PREFIX}.session_data`,
+] as const;
+
+// 세션 쿠키 클리어 헬퍼
+export const createClearSessionHeaders = (): HeadersInit => { ... };
+```
+
+#### 3. 클라이언트 설정 (`app/features/auth/lib/auth.client.ts`)
 
 브라우저에서 사용하는 인증 클라이언트:
 
@@ -960,7 +1061,7 @@ export const signInWithGoogle = async (...)
 
 **참고**: 이메일 로그인/회원가입은 이제 **서버 사이드 action**으로 처리됩니다.
 
-#### 3. API 라우트 (`app/routes/auth/api/$.tsx`)
+#### 4. API 라우트 (`app/features/auth/api/$.tsx`)
 
 Better-auth의 모든 엔드포인트를 처리하는 catch-all 라우트:
 
@@ -977,7 +1078,7 @@ Better-auth의 모든 엔드포인트를 처리하는 catch-all 라우트:
 // GET /auth/api/callback/google
 ```
 
-#### 4. 인증 페이지 구조 (개선된 패턴)
+#### 5. 인증 페이지 구조 (개선된 패턴)
 
 모든 인증 페이지는 **동일한 패턴**을 따릅니다:
 
@@ -1011,6 +1112,138 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 - 클라이언트가 우회할 수 없음
 - 세션 쿠키는 httpOnly, secure로 자동 설정
 - Progressive Enhancement 지원 (JS 비활성화 시에도 작동)
+
+---
+
+### OAuth 소셜 로그인 (서버 사이드)
+
+OAuth 소셜 로그인이 서버 사이드 방식으로 개선되었습니다:
+
+**signInWithSocials 함수** (`app/features/auth/lib/auth.server.ts`):
+```typescript
+export const signInWithSocials = async ({
+  request,
+  context,
+  provider,  // "github" | "google" | "kakao"
+}: { ... }) => {
+  const auth = createAuthFromContext(context);
+
+  return await auth.api.signInSocial({
+    body: {
+      provider,
+      callbackURL: `/my/dashboard`,  // 로그인 후 이동할 경로
+    },
+    headers: request.headers,
+    returnHeaders: true,
+  });
+};
+```
+
+**로그인 페이지에서 사용** (`app/routes/auth/sign-in.tsx`):
+```tsx
+// Form action으로 소셜 로그인 처리
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const provider = formData.get("provider");
+
+  if (provider === "github" || provider === "google") {
+    const { url, headers } = await signInWithSocials({
+      request, context, provider,
+    });
+    // OAuth 프로바이더 페이지로 리다이렉트
+    return redirect(url, { headers });
+  }
+  // ... 이메일 로그인 처리
+};
+
+// 소셜 로그인 버튼
+<Form method="post">
+  <input type="hidden" name="provider" value="github" />
+  <Button type="submit">GitHub으로 로그인</Button>
+</Form>
+```
+
+**OAuth 설정 개선** (`auth.server.ts`):
+```typescript
+// 신뢰할 수 있는 Origin 설정 (state_not_found 에러 방지)
+trustedOrigins: [baseURL],
+
+// 계정 연동 설정
+account: {
+  accountLinking: {
+    enabled: true,
+    trustedProviders: ["github", "google", "kakao"],
+  },
+},
+
+// HTTP 개발 환경 지원
+advanced: {
+  useSecureCookies: baseURL.startsWith("https://"),
+},
+```
+
+---
+
+### OAuth 에러 처리
+
+OAuth 관련 에러 메시지가 한글로 번역됩니다 (`app/features/auth/lib/error-handler.ts`):
+
+```typescript
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  state_not_found: "OAuth 인증 세션이 만료되었습니다. 다시 시도해주세요.",
+  state_mismatch: "OAuth 인증 상태가 일치하지 않습니다. 다시 시도해주세요.",
+  invalid_state: "유효하지 않은 인증 상태입니다. 다시 시도해주세요.",
+  oauth_error: "OAuth 인증 중 오류가 발생했습니다.",
+  access_denied: "접근이 거부되었습니다.",
+  // ...
+};
+```
+
+---
+
+### 로그아웃 안정성 개선
+
+로그아웃 시 세션 쿠키를 강제로 삭제하여 안정성을 높였습니다:
+
+**쿠키 클리어 헬퍼** (`app/features/auth/lib/auth.const.ts`):
+```typescript
+export const SESSION_COOKIE_NAMES = [
+  `${COOKIE_PREFIX}.session_token`,
+  `${COOKIE_PREFIX}.session_data`,
+] as const;
+
+export const createClearSessionHeaders = (): HeadersInit => {
+  return {
+    "Set-Cookie": SESSION_COOKIE_NAMES.map(
+      (name) => `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly`
+    ).join(", "),
+  };
+};
+```
+
+**로그아웃 라우트** (`app/routes/auth/sign-out.tsx`):
+```typescript
+import { createClearSessionHeaders } from "~/features/auth/lib/auth.const";
+import { signOut } from "~/features/auth/lib/auth.server";
+
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const headers = createClearSessionHeaders();
+
+  try {
+    await signOut({ request, context });
+    return redirect("/", { headers });
+  } catch (error) {
+    // 실패해도 쿠키는 삭제하고 홈으로 리다이렉트
+    return redirect("/", { headers });
+  }
+};
+```
+
+**개선 사항**:
+- 쿠키 상수가 `auth.const.ts`에 중앙 집중화
+- `cc-rr7.session_token`, `cc-rr7.session_data` 쿠키 명시적 만료
+- 서버 측 세션 삭제 실패 시에도 클라이언트 쿠키는 삭제
+- 세션 만료 상태에서 로그아웃 시도해도 정상 처리
 
 ## 📚 주요 라이브러리
 
@@ -1046,103 +1279,6 @@ bun test
 bun test:e2e
 ```
 
-## 🔧 Claude Code 스킬
-
-### Ralph-Loop Playwright - 자동 디버깅 스킬
-
-Ralph-Loop는 **5단계 반복 디버깅 루프**를 통해 웹 애플리케이션의 오류를 자동으로 수집, 분석, 계획, 수정, 테스트하는 통합 개발 스킬입니다.
-
-**핵심 특징:**
-- **ultrathink 모드**: 원인 분석 및 계획 수립 시 확장된 사고를 통해 깊이 있는 분석 수행
-- **사용자 컨펌**: 코드 수정 전 반드시 계획을 사용자에게 제시하고 승인을 받음
-- **반복 루프**: Goal 달성까지 테스트 → 분석 → 계획 → 컨펌 → 수정 → 검증 사이클 반복
-
-#### 사용 방법
-
-Claude Code에서 `/ralph-loop-playwright` 명령을 사용합니다:
-
-```bash
-/ralph-loop-playwright --goal "해결할 목표" --url "테스트 URL" --max 최대시도횟수
-```
-
-#### 기본 예시
-
-```bash
-# 페이지 404 에러 해결
-/ralph-loop-playwright --goal "개인정보 처리방침 페이지의 404에러를 해결해" --url "http://localhost:5173"
-
-# 로그인 테스트 (인증 포함)
-/ralph-loop-playwright --goal "로그인 기능 테스트" --url "http://localhost:5173/auth/signin" --email "test@example.com" --password "password123"
-
-# UI 렌더링 오류 수정 (최대 3회 시도)
-/ralph-loop-playwright --goal "header 컴포넌트가 제대로 렌더링되지 않음" --url "http://localhost:5173" --max 3
-```
-
-#### 파라미터
-
-| 파라미터 | 필수 | 설명 |
-|---------|------|------|
-| `goal` | ✅ | 달성할 목표 |
-| `url` | ❌ | 테스트 대상 URL |
-| `max` | ❌ | 최대 루프 횟수 (0 = 무제한) |
-| `email` | ❌ | 로그인용 이메일 |
-| `password` | ❌ | 로그인용 비밀번호 |
-
-#### 5단계 워크플로우
-
-```
-테스트 → 분석 → 계획 → 컨펌 → 수정 → 검증 (반복)
-```
-
-**PHASE 1: 오류 수집**
-- 콘솔 에러 메시지 수집
-- 네트워크 요청 상태 확인
-- 페이지 스냅샷 및 스크린샷 캡처
-- Goal 달성 여부 판정
-
-**PHASE 2: 원인 분석 (ultrathink 모드)**
-- 여러 가설 수립 및 가능성 평가
-- 코드 추적 및 호출 체인 역추적
-- 근본 원인 확정 및 영향 범위 평가
-- 대안 검토 및 최적 해결책 선택
-
-**PHASE 3: 수정 계획 수립 (ultrathink 모드)**
-- 수정 범위 정의 및 우선순위 결정
-- 상세 변경 사항 설계 (변경 전/후 코드 명시)
-- 리스크 평가 및 실행 순서 최적화
-- **사용자에게 계획 제시 및 승인 요청**
-
-**PHASE 4: 코드 수정**
-- 승인된 계획 범위 내에서만 수정
-- 최소 변경 원칙 준수
-- 타입 검사 실행
-
-**PHASE 5: 테스트 검증**
-- 페이지 새로고침 및 에러 재확인
-- Goal 조건 충족 여부 확인
-- PASS/FAIL 판정 후 종료 또는 다음 루프 진행
-
-#### 실제 사용 사례
-
-이 프로젝트에서 Ralph-Loop를 사용하여 다음을 완료했습니다:
-
-1. **개인정보처리방침 페이지 구현**
-   - 요청: "footer의 개인정보 처리방침 페이지가 잘못 구현되어있음"
-   - 결과: `/privacy-policy` 페이지 생성 및 라우트 추가
-
-2. **이용약관 및 고객지원 페이지**
-   - 요청: "footer의 이용약관과 고객지원 페이지의 404에러를 해결해"
-   - 결과: `/terms`, `/support` 페이지 생성 및 라우트 추가
-
-#### 장점
-
-- ✅ **ultrathink 모드**로 깊이 있는 원인 분석
-- ✅ **사용자 컨펌** 절차로 안전한 코드 수정
-- ✅ 자동 오류 감지 및 분석
-- ✅ 브라우저 테스트를 통한 검증
-- ✅ 스크린샷 및 로그 자동 저장
-- ✅ Goal 달성까지 자동 반복
-
 ## 🤝 기여
 
 기여를 환영합니다! Pull Request를 제출하기 전에:
@@ -1162,7 +1298,3 @@ MIT License
 - [Supabase](https://supabase.com/)
 - [Drizzle ORM](https://orm.drizzle.team/)
 - [shadcn/ui](https://ui.shadcn.com/)
-
----
-
-Built with ❤️ using Claude Code

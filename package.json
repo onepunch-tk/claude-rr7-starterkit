@@ -15,7 +15,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"db:auth": "bunx @better-auth/cli generate --config app/features/auth/lib/auth.server.ts --output app/db/auth-schema.ts"
 	},
 	"dependencies": {
 		"@radix-ui/react-alert-dialog": "^1.1.15",

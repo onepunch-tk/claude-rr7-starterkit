@@ -37,6 +37,26 @@ const AUTH_ERROR_MESSAGES: Partial<
 } as const;
 
 /**
+ * OAuth 관련 에러 코드에 대응하는 한글 메시지 매핑
+ *
+ * Better-auth의 BASE_ERROR_CODES에 포함되지 않은 OAuth 관련 에러 코드들입니다.
+ * 주로 state 검증 실패나 OAuth 콜백 처리 중 발생하는 에러입니다.
+ */
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+	state_not_found: "OAuth 인증 세션이 만료되었습니다. 다시 시도해주세요.",
+	state_mismatch: "OAuth 인증 상태가 일치하지 않습니다. 다시 시도해주세요.",
+	invalid_state: "유효하지 않은 인증 상태입니다. 다시 시도해주세요.",
+	oauth_error: "OAuth 인증 중 오류가 발생했습니다.",
+	access_denied: "접근이 거부되었습니다.",
+	invalid_request: "잘못된 요청입니다.",
+	unauthorized_client: "인증되지 않은 클라이언트입니다.",
+	unsupported_response_type: "지원하지 않는 응답 형식입니다.",
+	invalid_scope: "유효하지 않은 권한 범위입니다.",
+	server_error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+	temporarily_unavailable: "서비스를 일시적으로 사용할 수 없습니다.",
+} as const;
+
+/**
  * Better-auth 에러를 사용자 친화적인 한글 메시지로 변환
  *
  * @param error - 발생한 에러 객체
@@ -76,6 +96,17 @@ export const getAuthErrorMessage = (
 		if (koreanMessage) {
 			return koreanMessage;
 		}
+	}
+
+	// OAuth 에러 코드 매칭 (에러 메시지에 코드가 포함된 경우)
+	const oauthErrorCode = Object.keys(OAUTH_ERROR_MESSAGES).find(
+		(code) =>
+			error.message.toLowerCase().includes(code) ||
+			error.message.toLowerCase().includes(code.replace(/_/g, " ")),
+	);
+
+	if (oauthErrorCode) {
+		return OAUTH_ERROR_MESSAGES[oauthErrorCode];
 	}
 
 	// 매칭되지 않으면 기본 메시지 반환

@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Resend } from "resend";
-import PasswordResetEmail from "~/components/password-reset-email";
-import VerificationEmail from "~/components/verification-email";
+import PasswordResetEmail from "~/components/email/password-reset-email";
+import VerificationEmail from "~/components/email/verification-email";
 import {
 	EmailSendError,
 	EmailServiceNotConfiguredError,

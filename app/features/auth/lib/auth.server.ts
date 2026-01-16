@@ -5,15 +5,13 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { createDrizzleClient } from "~/db";
 import * as schema from "~/db/schema";
 import { userTable } from "~/db/schema";
-import {
-	DuplicateEmailError,
-	UserCreationError,
-} from "~/features/auth/errors";
+import { DuplicateEmailError, UserCreationError } from "~/features/auth/errors";
 import { createUserProfile } from "~/features/auth/services/profile.server";
-import { sendPasswordResetEmail, sendVerificationEmail } from "./email.server";
+import { sendPasswordResetEmail, sendVerificationEmail } from "~/lib/email.server";
+import { COOKIE_PREFIX } from "./auth.const";
 
 /**
- * Better-auth 인스턴스 생성
+ * Better-auth 인스턴스 생성 (내부 함수)
  *
  * @param databaseUrl - PostgreSQL 데이터베이스 URL
  * @param baseURL - 애플리케이션 기본 URL (OAuth 콜백용)
@@ -25,7 +23,7 @@ import { sendPasswordResetEmail, sendVerificationEmail } from "./email.server";
  * @param kakaoClientSecret - Kakao OAuth 클라이언트 시크릿
  * @returns Better-auth 인스턴스
  */
-export const createAuthInstance = (
+const createAuth = (
 	databaseUrl: string,
 	baseURL: string,
 	githubClientId?: string,
@@ -121,18 +119,56 @@ export const createAuthInstance = (
 
 		// ✅ 보안 설정
 		advanced: {
+			cookiePrefix: COOKIE_PREFIX,
 			crossSubDomainCookies: {
 				enabled: false,
 			},
 			generateId: false, // Drizzle이 자동으로 생성
+			// HTTP에서는 Secure 쿠키 비활성화 (개발 환경 지원)
+			useSecureCookies: baseURL.startsWith("https://"),
+		},
+
+		// ✅ 신뢰할 수 있는 Origin 설정 (OAuth state_not_found 에러 방지)
+		trustedOrigins: [baseURL],
+
+		// ✅ 신뢰할 수 있는 provider 설정
+		account: {
+			accountLinking: {
+				enabled: true,
+				trustedProviders: ["github", "google", "kakao"],
+			},
 		},
 	});
 };
 
 /**
+ * CLI용 정적 auth 인스턴스
+ *
+ * 주의: 이 인스턴스는 CLI 스키마 생성 및 로컬 개발용입니다.
+ * Cloudflare Workers 환경에서는 createAuthFromContext를 사용하세요.
+ */
+export const auth = createAuth(
+	process.env.DATABASE_URL!,
+	process.env.BASE_URL!,
+	process.env.GITHUB_CLIENT_ID,
+	process.env.GITHUB_CLIENT_SECRET,
+	process.env.GOOGLE_CLIENT_ID,
+	process.env.GOOGLE_CLIENT_SECRET,
+	process.env.KAKAO_CLIENT_ID,
+	process.env.KAKAO_CLIENT_SECRET,
+	process.env.RESEND_API_KEY,
+	process.env.RESEND_FROM_EMAIL,
+);
+
+/**
  * Auth 인스턴스 타입 추론
  */
-export type AuthInstance = ReturnType<typeof createAuthInstance>;
+export type AuthInstance = ReturnType<typeof createAuth>;
+
+/**
+ * auth 인스턴스 타입 export
+ */
+export type Auth = typeof auth;
 
 /**
  * Cloudflare Workers 환경 변수 타입
@@ -198,7 +234,7 @@ export const createAuthFromContext = (
 ) => {
 	const env = extractAuthEnv(context);
 
-	return createAuthInstance(
+	return createAuth(
 		env.DATABASE_URL,
 		env.BASE_URL,
 		env.GITHUB_CLIENT_ID,
@@ -418,5 +454,26 @@ export const resetPasswordWithToken = async ({
 	return await auth.api.resetPassword({
 		body: { newPassword, token },
 		headers: request.headers,
+	});
+};
+
+export const signInWithSocials = async ({
+	request,
+	context,
+	provider,
+}: {
+	request: Request;
+	context: MiddlewareContext["context"];
+	provider: "kakao" | "github" | "google";
+}) => {
+	const auth = createAuthFromContext(context);
+
+	return await auth.api.signInSocial({
+		body: {
+			provider,
+			callbackURL: `/my/dashboard`, // 앱 내에서 이동할 redirect path **oauth의 callback 아님**
+		},
+		headers: request.headers,
+		returnHeaders: true,
 	});
 };

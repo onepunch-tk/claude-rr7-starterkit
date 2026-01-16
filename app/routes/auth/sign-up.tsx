@@ -30,7 +30,7 @@ import {
 } from "~/features/auth/errors";
 import { calculatePasswordStrength } from "~/features/auth/lib/password-strength";
 import { type AuthActionResponse, signupSchema } from "~/features/auth/types";
-import { signUpWithCredentials } from "~/lib/auth.server";
+import { signUpWithCredentials } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import { cn } from "~/lib/utils";
 import type { Route } from "./+types/sign-up";

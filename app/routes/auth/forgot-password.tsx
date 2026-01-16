@@ -14,7 +14,7 @@ import {
 	type AuthActionResponse,
 	forgotPasswordSchema,
 } from "~/features/auth/types";
-import { requestPasswordReset } from "~/lib/auth.server";
+import { requestPasswordReset } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/forgot-password";
 

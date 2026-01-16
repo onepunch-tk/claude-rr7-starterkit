@@ -26,7 +26,7 @@ import {
 	changePasswordSchema,
 } from "~/features/auth/types";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
-import { changePasswordWithCurrent } from "~/lib/auth.server";
+import { changePasswordWithCurrent } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import { toast } from "sonner";
 import type { Route } from "./+types/index";

@@ -3,7 +3,7 @@ import type { User } from "~/db/schema";
 import {
 	createAuthFromContext,
 	type MiddlewareContext,
-} from "~/lib/auth.server";
+} from "~/features/auth/lib/auth.server";
 
 /**
  * 인증 필수 미들웨어
