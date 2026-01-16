@@ -4,19 +4,48 @@ description: |
   Git 자동화 스킬. /git 명령어 실행 시 작업 선택 UI 제공.
   commit, push, sync, merge 작업 중 선택 가능.
 model: haiku
+allowed-tools:
+  - Bash
+  - Read
+  - Glob
+  - Grep
+  - AskUserQuestion
 ---
 
 # Git 자동화 스킬
 
 `/git` 명령어 실행 시 작업을 선택한다.
 
+## 아규먼트 파싱
+
+스킬 호출 시 `args` 파라미터를 파싱하여 작업과 메시지를 분리한다.
+
+### 파싱 규칙
+
+| 입력 예시 | 파싱 결과 |
+|-----------|-----------|
+| (없음) | action=없음, message=없음 |
+| `"로그인 기능"` | action=없음, message="로그인 기능" |
+| `commit` | action=commit, message=없음 |
+| `commit "로그인 기능"` | action=commit, message="로그인 기능" |
+| `sync` | action=sync, message=없음 |
+| `sync "로그인 기능"` | action=sync, message="로그인 기능" |
+| `push` | action=push |
+| `merge` | action=merge |
+
+### 파싱 방법
+
+1. args가 따옴표로 시작하면 → 전체를 message로 처리 (action 없음)
+2. args가 `commit`, `sync`, `push`, `merge`로 시작하면 → 해당 값을 action으로, 나머지를 message로 처리
+3. 그 외 → action 없음, 전체를 message로 처리
+
 ## 실행 흐름
 
-### 1. AskUserQuestion 도구로 작업 선택 [필수]
+### 1. action이 없는 경우 → 작업 선택 UI 표시
 
-**중요: 이 스킬이 로드되면 반드시 `AskUserQuestion` 도구를 즉시 호출하여 사용자에게 선택 UI를 제공해야 한다.**
+**AskUserQuestion 도구를 호출하여 작업 선택 UI를 제공한다.**
 
-텍스트로 옵션을 나열하지 말고, 아래 형식으로 `AskUserQuestion` 도구를 호출한다:
+#### message가 없는 경우:
 
 ```json
 {
@@ -36,25 +65,48 @@ model: haiku
 }
 ```
 
-### 2. commit/sync 선택 시 커밋 메시지 입력
+#### message가 있는 경우 (예: `/git "로그인 기능"`):
 
-commit 또는 sync 선택 시, **대화 흐름으로 메시지를 요청**한다:
-
+```json
+{
+  "questions": [
+    {
+      "header": "Git 작업",
+      "question": "어떤 Git 작업을 수행할까요? (메시지: \"로그인 기능\")",
+      "multiSelect": false,
+      "options": [
+        { "label": "commit", "description": "입력한 메시지로 커밋" },
+        { "label": "sync", "description": "입력한 메시지로 add → commit → push" },
+        { "label": "push", "description": "현재 브랜치 push (메시지 사용 안함)" },
+        { "label": "merge", "description": "trunk-based merge (메시지 사용 안함)" }
+      ]
+    }
+  ]
+}
 ```
-"커밋 메시지를 입력해주세요. (빈 메시지 입력 시 자동 생성)"
-```
 
-- 사용자가 메시지를 입력하면 → 해당 메시지 사용
-- 사용자가 빈 메시지(엔터만)를 보내면 → 변경사항 분석 후 자동 생성
+**UI에서 Other 선택 시:**
+- commit/sync 작업에 사용할 메시지로 처리
 
-### 3. 선택에 따른 처리
+### 2. action이 있는 경우 → 바로 해당 작업 수행
 
-| 선택 | 참조 문서 | 메시지 처리 |
-|------|-----------|-------------|
-| commit | [references/commit.md](references/commit.md) | 대화로 입력받거나 자동 생성 |
-| push | [references/push.md](references/push.md) | 해당 없음 |
-| sync | [references/sync.md](references/sync.md) | 대화로 입력받거나 자동 생성 |
-| merge | [references/merge.md](references/merge.md) | 브랜치 삭제 여부만 추가 질문 |
+| action | message 유무 | 동작 |
+|--------|-------------|------|
+| commit | 없음 | 자동 메시지 생성 후 커밋 |
+| commit | 있음 | 해당 메시지로 커밋 |
+| sync | 없음 | 자동 메시지 생성 후 add → commit → push |
+| sync | 있음 | 해당 메시지로 add → commit → push |
+| push | - | 바로 push |
+| merge | - | 브랜치 삭제 여부 질문 후 merge |
+
+### 3. 작업별 참조 문서
+
+| 작업 | 참조 문서 |
+|------|-----------|
+| commit | [references/commit.md](references/commit.md) |
+| push | [references/push.md](references/push.md) |
+| sync | [references/sync.md](references/sync.md) |
+| merge | [references/merge.md](references/merge.md) |
 
 ## 공통 규칙
 
