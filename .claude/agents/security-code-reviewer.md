@@ -1,6 +1,6 @@
 ---
 name: security-code-reviewer
-description: "**MUST** run this in the background, Use this agent when: 1) 코드 작성이 완료된 후 자동으로 보안 점검이 필요할 때, 2) 사용자가 명시적으로 보안 리뷰를 요청할 때, 3) 특정 디렉토리나 파일들의 보안 취약점을 점검해야 할 때, 4) git diff를 통해 변경된 코드의 보안을 검토해야 할 때. 이 에이전트는 백그라운드에서 병렬로 실행될 수 있으며, 다른 작업과 동시에 보안 점검을 수행합니다."
+description: "Use this agent when: 1) 코드 작성이 완료된 후 자동으로 보안 점검이 필요할 때, 2) 사용자가 명시적으로 보안 리뷰를 요청할 때, 3) 특정 디렉토리나 파일들의 보안 취약점을 점검해야 할 때, 4) git diff를 통해 변경된 코드의 보안을 검토해야 할 때. 이 에이전트는 백그라운드에서 병렬로 실행될 수 있으며, 다른 작업과 동시에 보안 점검을 수행합니다."
 model: opus
 color: red
 ---
