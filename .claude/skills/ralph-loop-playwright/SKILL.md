@@ -9,7 +9,7 @@ allowed-tools: [
   "mcp__playwright__*",
   "mcp__context7__*"
 ]
-model: inherit
+model: opus
 ---
 
 # Ralph-Loop Playwright
