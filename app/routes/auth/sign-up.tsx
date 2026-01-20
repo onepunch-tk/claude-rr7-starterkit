@@ -24,12 +24,13 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import type { User } from "~/db/schema";
 import {
+	type AuthActionResponse,
+	signupSchema,
 	AuthError,
 	DuplicateEmailError,
 	UserCreationError,
-} from "~/features/auth/errors";
+} from "~/domain/auth";
 import { calculatePasswordStrength } from "~/features/auth/lib/password-strength";
-import { type AuthActionResponse, signupSchema } from "~/features/auth/types";
 import { signUpWithCredentials } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import { cn } from "~/lib/utils";

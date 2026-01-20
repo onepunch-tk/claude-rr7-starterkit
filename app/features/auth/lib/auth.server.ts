@@ -5,7 +5,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { createDrizzleClient } from "~/db";
 import * as schema from "~/db/schema";
 import { userTable } from "~/db/schema";
-import { DuplicateEmailError, UserCreationError } from "~/features/auth/errors";
+import { DuplicateEmailError, UserCreationError } from "~/domain/auth";
 import { createUserProfile } from "~/features/auth/services/profile.server";
 import { sendPasswordResetEmail, sendVerificationEmail } from "~/lib/email.server";
 import { COOKIE_PREFIX } from "./auth.const";

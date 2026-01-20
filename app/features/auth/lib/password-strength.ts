@@ -1,7 +1,4 @@
-import type {
-	PasswordStrength,
-	PasswordStrengthLevel,
-} from "~/features/auth/types";
+import type { PasswordStrength, PasswordStrengthLevel } from "~/domain/auth";
 
 /**
  * 비밀번호 강도 계산

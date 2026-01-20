@@ -17,10 +17,7 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
-import {
-	type AuthActionResponse,
-	resetPasswordSchema,
-} from "~/features/auth/types";
+import { type AuthActionResponse, resetPasswordSchema } from "~/domain/auth";
 import { resetPasswordWithToken } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/reset-password";

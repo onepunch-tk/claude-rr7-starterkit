@@ -10,10 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import {
-	type AuthActionResponse,
-	forgotPasswordSchema,
-} from "~/features/auth/types";
+import { type AuthActionResponse, forgotPasswordSchema } from "~/domain/auth";
 import { requestPasswordReset } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/forgot-password";

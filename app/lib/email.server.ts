@@ -5,7 +5,7 @@ import VerificationEmail from "~/components/email/verification-email";
 import {
 	EmailSendError,
 	EmailServiceNotConfiguredError,
-} from "~/features/auth/errors";
+} from "~/domain/auth";
 
 /**
  * 이메일 전송 옵션

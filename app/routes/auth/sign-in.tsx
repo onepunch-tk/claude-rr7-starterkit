@@ -21,8 +21,8 @@ import {
 } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import type { User } from "~/db/schema";
+import { type AuthActionResponse, loginSchema } from "~/domain/auth";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
-import { type AuthActionResponse, loginSchema } from "~/features/auth/types";
 import { signInWithCredentials, signInWithSocials } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
 import type { Route } from "./+types/sign-in";

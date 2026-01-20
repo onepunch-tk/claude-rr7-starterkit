@@ -21,10 +21,7 @@ import {
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 import { FormField, SubmitButton } from "~/components/forms";
-import {
-	type ChangePasswordFormData,
-	changePasswordSchema,
-} from "~/features/auth/types";
+import { changePasswordSchema } from "~/domain/auth";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
 import { changePasswordWithCurrent } from "~/features/auth/lib/auth.server";
 import { validateFormData } from "~/lib/form-helpers";
