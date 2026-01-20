@@ -22,7 +22,7 @@ import {
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import type { User } from "~/db/schema";
+import type { User } from "~/infrastructure/persistence/schema";
 import {
 	type AuthActionResponse,
 	signupSchema,

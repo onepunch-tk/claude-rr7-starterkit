@@ -2,13 +2,15 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { createDrizzleClient } from "~/db";
-import * as schema from "~/db/schema";
-import { userTable } from "~/db/schema";
 import { DuplicateEmailError, UserCreationError } from "~/domain/auth";
+import {
+	createDrizzleClient,
+	userTable,
+} from "~/infrastructure/persistence/drizzle";
+import * as schema from "~/infrastructure/persistence/schema";
+import { COOKIE_PREFIX } from "~/infrastructure/external/better-auth";
 import { createUserProfile } from "~/features/auth/services/profile.server";
 import { sendPasswordResetEmail, sendVerificationEmail } from "~/lib/email.server";
-import { COOKIE_PREFIX } from "./auth.const";
 
 /**
  * Better-auth 인스턴스 생성 (내부 함수)

@@ -20,7 +20,7 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
-import type { User } from "~/db/schema";
+import type { User } from "~/infrastructure/persistence/schema";
 import { type AuthActionResponse, loginSchema } from "~/domain/auth";
 import { getAuthErrorMessage } from "~/features/auth/lib/error-handler";
 import { signInWithCredentials, signInWithSocials } from "~/features/auth/lib/auth.server";

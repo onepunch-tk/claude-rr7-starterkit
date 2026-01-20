@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import type { DrizzleClient } from "~/db";
-import { profilesTable } from "~/db/schema";
+import type { DrizzleClient } from "~/infrastructure/persistence/drizzle";
+import { profilesTable } from "~/infrastructure/persistence/schema";
 
 /**
  * 사용자 프로필 생성

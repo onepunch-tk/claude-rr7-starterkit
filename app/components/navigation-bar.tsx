@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { SidebarTrigger } from "~/components/ui/sidebar";
-import type { User } from "~/db";
+import type { User } from "~/infrastructure/persistence/schema";
 
 interface UserMenuProps {
 	user: User;
