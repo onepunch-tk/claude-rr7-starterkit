@@ -1,12 +1,14 @@
 # Claude RR7 Starterkit
 
-React Router v7 + Cloudflare Workers를 기반으로 한 프로덕션 레디 풀스택 웹 애플리케이션 스타터킷입니다.
+React Router v7 기반의 **멀티 플랫폼 배포 지원** 프로덕션 레디 풀스택 웹 애플리케이션 스타터킷입니다. Cloudflare Workers(엣지 컴퓨팅)와 Docker(Express/Fastify)를 모두 지원합니다.
 
 ## 🚀 주요 기능
 
 ### 핵심 기술 스택
 - **React Router v7** - 풀스택 React 프레임워크 (SSR 지원)
 - **Cloudflare Workers** - 엣지 컴퓨팅 배포 플랫폼
+- **Express.js** - Node.js 웹 프레임워크 (Docker 배포용)
+- **Fastify** - 고성능 Node.js 웹 프레임워크 (Docker 배포용)
 - **Better-auth** - 프레임워크 독립적 인증 라이브러리
 - **Drizzle ORM** - Code-first 데이터베이스 스키마 관리
 - **Supabase** - PostgreSQL 데이터베이스 (로컬 개발 환경 포함)
@@ -15,6 +17,8 @@ React Router v7 + Cloudflare Workers를 기반으로 한 프로덕션 레디 풀
 - **TypeScript** - 타입 안전성
 
 ### 주요 특징
+- ✅ **멀티 플랫폼 배포** (Cloudflare Workers, Docker/Express/Fastify)
+- ✅ **플랫폼 추상화 어댑터 패턴** (adapters/ 디렉토리)
 - ✅ 3단계 중첩 Layout 구조 (공개 → 인증 → 앱)
 - ✅ Better-auth 통합 (이메일/비밀번호, OAuth, 2FA/TOTP)
 - ✅ Resend 기반 실제 이메일 전송 (회원가입, 비밀번호 재설정)
@@ -22,7 +26,7 @@ React Router v7 + Cloudflare Workers를 기반으로 한 프로덕션 레디 풀
 - ✅ Drizzle ORM Code-first 접근 방식
 - ✅ Docker 기반 로컬 개발 환경 (Supabase CLI)
 - ✅ 재사용 가능한 Form 컴포넌트 (FormField, SubmitButton)
-- ✅ GitHub Actions CI/CD 파이프라인
+- ✅ GitHub Actions CI/CD 파이프라인 (Cloudflare, Docker 각각)
 - ✅ 타입스크립트 엄격 모드
 - ✅ Biome 린터/포맷터
 
@@ -42,11 +46,19 @@ bunx supabase start
 # 4. 데이터베이스 마이그레이션
 bun run db:push
 
-# 5. 개발 서버 실행
-bun run dev
+# 5. 개발 서버 실행 (플랫폼 선택)
+bun run dev:cloudflare  # Cloudflare Workers (Wrangler 기반)
+# 또는
+bun run dev:express     # Express 서버
+# 또는
+bun run dev:fastify     # Fastify 서버
 ```
 
-애플리케이션이 `http://localhost:5173`에서 실행됩니다! 🎉
+| 플랫폼 | URL | 설명 |
+|--------|-----|------|
+| Cloudflare | `http://localhost:5173` | Wrangler 개발 서버 |
+| Express | `http://localhost:3000` | Node.js Express |
+| Fastify | `http://localhost:3000` | Node.js Fastify |
 
 ---
 
@@ -163,19 +175,28 @@ KAKAO_CLIENT_ID=
 KAKAO_CLIENT_SECRET=
 ```
 
-**필수 설정:**
-- `BETTER_AUTH_SECRET`: 암호화에 사용되는 비밀 키 (최소 32자)
-  - 생성 방법: `openssl rand -base64 32`
-  - 프로덕션에서는 반드시 다른 값으로 변경
-- `RESEND_API_KEY`: Resend 이메일 서비스 API 키
-  - 로컬 개발: 무료 플랜 사용 가능 (월 100통)
-  - 프로덕션: 유료 플랜 필요
-- `RESEND_FROM_EMAIL`: 발신자 이메일 주소
+**필수 환경 변수 (3개):**
+
+| 변수 | 설명 | 예시 |
+|------|------|------|
+| `DATABASE_URL` | PostgreSQL 연결 문자열 | `postgresql://postgres:postgres@localhost:54322/postgres` |
+| `BASE_URL` | 애플리케이션 기본 URL | `http://localhost:5173` (개발) / `https://your-domain.com` (프로덕션) |
+| `BETTER_AUTH_SECRET` | 암호화 키 (최소 32자) | `openssl rand -base64 32`로 생성 |
+
+**선택 환경 변수:**
+
+| 변수 | 설명 |
+|------|------|
+| `RESEND_API_KEY` | Resend 이메일 서비스 API 키 (이메일 인증 사용 시 필요) |
+| `RESEND_FROM_EMAIL` | 발신자 이메일 주소 |
+| `SERVER` | Node.js 서버 선택: `express` (기본) 또는 `fastify` |
 
 **OAuth 앱 설정 (선택사항):**
 - GitHub: https://github.com/settings/developers
 - Google: https://console.cloud.google.com/apis/credentials
 - Kakao: https://developers.kakao.com/console/app
+
+> **Docker 배포 시**: `docker/.env.docker` 파일을 복사하여 환경 변수를 설정하세요. `SERVER` 환경변수로 Express/Fastify를 선택할 수 있습니다.
 
 ### 4. 데이터베이스 마이그레이션
 
@@ -195,11 +216,24 @@ bun run db:studio
 
 ### 개발 서버 실행
 
-```bash
-bun run dev
-```
+플랫폼에 따라 적절한 개발 서버를 선택하세요:
 
-애플리케이션이 `http://localhost:5173`에서 실행됩니다.
+| 플랫폼 | 명령어 | 포트 | 설명 |
+|--------|--------|------|------|
+| **Cloudflare Workers** | `bun run dev:cloudflare` | 5173 | Wrangler 기반 개발 서버 |
+| **Express** | `bun run dev:express` | 3000 | Express + tsx watch |
+| **Fastify** | `bun run dev:fastify` | 3000 | Fastify + tsx watch |
+
+```bash
+# Cloudflare Workers 개발 (기본)
+bun run dev:cloudflare
+
+# Express 개발
+bun run dev:express
+
+# Fastify 개발
+bun run dev:fastify
+```
 
 ### 타입 체크
 
@@ -218,22 +252,48 @@ bunx @biomejs/biome check --write .
 
 ## 📦 빌드
 
-프로덕션 빌드 생성:
+### 플랫폼별 빌드
+
+| 플랫폼 | 빌드 명령어 | 설명 |
+|--------|------------|------|
+| **Cloudflare** | `bun run build` 또는 `bun run build:cloudflare` | Wrangler 배포용 |
+| **Node.js** | `bun run build:node` | Express/Fastify 배포용 (Docker) |
 
 ```bash
+# Cloudflare Workers 빌드 (기본)
 bun run build
+# 또는
+bun run build:cloudflare
+
+# Node.js 빌드 (Express/Fastify용)
+bun run build:node
 ```
 
-빌드 결과물:
+### 빌드 결과물
+
 ```
 build/
-├── client/     # 정적 에셋
-└── server/     # 서버 사이드 코드
+├── client/         # 정적 에셋
+└── server/         # 서버 사이드 코드
+    └── index.js    # Node.js 진입점 (build:node 시)
 ```
 
 ## 🌐 배포
 
-### Cloudflare Workers 배포
+### 배포 방식 선택 가이드
+
+| 기준 | Cloudflare Workers | Docker (Express/Fastify) |
+|------|-------------------|--------------------------|
+| **인프라** | 엣지 컴퓨팅 (서버리스) | 컨테이너 기반 |
+| **확장성** | 자동 (Cloudflare 관리) | 수동 (Kubernetes, ECS 등) |
+| **Cold Start** | 매우 빠름 | 없음 (상시 실행) |
+| **비용** | 요청 기반 과금 | 인스턴스 기반 과금 |
+| **제한사항** | CPU 시간 제한, 번들 크기 제한 | 제한 없음 |
+| **추천 사용 사례** | 글로벌 배포, API | 복잡한 백그라운드 작업, 레거시 통합 |
+
+---
+
+### 방법 1: Cloudflare Workers 배포
 
 #### 1. Cloudflare 설정
 
@@ -316,9 +376,9 @@ bun run deploy:production
 
 ---
 
-### GitHub Actions 자동 배포
+### Cloudflare GitHub Actions 자동 배포
 
-프로젝트에 GitHub Actions CI/CD 파이프라인이 설정되어 있습니다.
+프로젝트에 Cloudflare 배포용 GitHub Actions 파이프라인이 설정되어 있습니다 (`.github/workflows/deploy-cloudflare.yml`).
 
 #### 1. GitHub Secrets 설정
 
@@ -342,39 +402,21 @@ Cloudflare 계정 ID를 찾습니다:
 2. 우측 사이드바에서 "Account ID" 확인 및 복사
 3. GitHub Secret에 추가
 
-#### 2. .github/workflows/deploy.yml 설정
-
-워크플로우 파일에서 배포 URL을 수정하세요:
-
-```yaml
-deploy-staging:
-  environment:
-    name: staging
-    url: https://your-project-name-staging.workers.dev  # ⭐ 변경
-
-deploy-production:
-  environment:
-    name: production
-    url: https://your-project-name-production.workers.dev  # ⭐ 변경
-```
-
-**URL 형식:**
-- `https://[wrangler.toml의 env.staging.name].workers.dev`
-- `https://[wrangler.toml의 env.production.name].workers.dev`
-
-#### 3. 자동 배포 트리거
+#### 2. 자동 배포 트리거
 
 설정이 완료되면 다음과 같이 자동 배포됩니다:
 
-- ✅ `main` 브랜치에 push → **Production 배포**
-- ✅ `staging` 브랜치에 push → **Staging 배포**
-- ✅ Pull Request 생성 → 타입 체크 및 빌드 테스트
+| 트리거 | 배포 환경 |
+|--------|----------|
+| `main` 브랜치에 push | **Production** 배포 |
+| `develop` 브랜치에 push | **Staging** 배포 |
+| `workflow_dispatch` | 수동 배포 (환경 선택 가능) |
 
 **첫 배포 시작하기:**
 ```bash
-# Staging 브랜치 생성 및 푸시
-git checkout -b staging
-git push origin staging
+# Develop 브랜치 생성 및 푸시 (Staging 배포)
+git checkout -b develop
+git push origin develop
 
 # Production 배포 (main 브랜치에 푸시)
 git checkout main
@@ -385,44 +427,155 @@ GitHub Actions 탭에서 배포 진행 상황을 확인할 수 있습니다.
 
 ---
 
+### 방법 2: Docker 배포 (Express/Fastify)
+
+Docker를 사용하여 Express 또는 Fastify 서버로 배포할 수 있습니다.
+
+#### Docker 빌드 및 실행
+
+```bash
+# 1. Node.js용 빌드
+bun run build:node
+
+# 2. Docker 이미지 빌드
+bun run docker:build
+# 또는
+docker build -f docker/Dockerfile -t claude-rr7-starterkit .
+
+# 3. Docker 컨테이너 실행
+bun run docker:run
+# 또는
+docker run -p 3000:3000 --env-file docker/.env.docker claude-rr7-starterkit
+```
+
+#### Docker Compose 사용
+
+Docker Compose를 사용하면 더 쉽게 컨테이너를 관리할 수 있습니다:
+
+```bash
+# Express 서버로 실행 (기본)
+docker compose -f docker/docker-compose.yml --env-file docker/.env.docker up
+
+# Fastify 서버로 실행
+SERVER=fastify docker compose -f docker/docker-compose.yml --env-file docker/.env.docker up
+
+# 백그라운드 실행
+docker compose -f docker/docker-compose.yml --env-file docker/.env.docker up -d
+```
+
+#### 서버 선택 (SERVER 환경변수)
+
+`SERVER` 환경변수로 서버 프레임워크를 선택할 수 있습니다:
+
+| 값 | 서버 | 설명 |
+|----|------|------|
+| `express` (기본값) | Express | 범용 Node.js 웹 프레임워크 |
+| `fastify` | Fastify | 고성능 Node.js 웹 프레임워크 |
+
+```bash
+# Express 서버 (기본)
+docker run -p 3000:3000 --env-file .env claude-rr7-starterkit
+
+# Fastify 서버
+docker run -e SERVER=fastify -p 3000:3000 --env-file .env claude-rr7-starterkit
+```
+
+#### 프로덕션 실행 (Docker 없이)
+
+Node.js 환경에서 직접 실행할 수도 있습니다:
+
+```bash
+# 빌드
+bun run build:node
+
+# Express 서버로 실행
+bun run start:express
+# 또는
+NODE_ENV=production node server.js
+
+# Fastify 서버로 실행
+bun run start:fastify
+# 또는
+NODE_ENV=production SERVER=fastify node server.js
+```
+
+---
+
+### Docker GitHub Actions 자동 배포
+
+Docker 이미지를 GitHub Container Registry(GHCR)에 자동으로 빌드하고 푸시하는 파이프라인이 설정되어 있습니다 (`.github/workflows/deploy-docker.yml`).
+
+#### 자동 배포 트리거
+
+| 트리거 | 이미지 태그 |
+|--------|------------|
+| 버전 태그 push (`v*`) | 태그 이름 (예: `v1.0.0`) |
+| `workflow_dispatch` | 지정된 태그 또는 `latest` |
+
+#### 사용 방법
+
+```bash
+# 버전 태그 생성 및 푸시
+git tag v1.0.0
+git push origin v1.0.0
+# → ghcr.io/[owner]/claude-rr7-starterkit:v1.0.0 이미지 생성
+
+# 이미지 풀 및 실행
+docker pull ghcr.io/[owner]/claude-rr7-starterkit:v1.0.0
+docker run -p 3000:3000 --env-file .env ghcr.io/[owner]/claude-rr7-starterkit:v1.0.0
+
+# Fastify 서버로 실행
+docker run -e SERVER=fastify -p 3000:3000 --env-file .env ghcr.io/[owner]/claude-rr7-starterkit:v1.0.0
+```
+
+---
+
 ### 📋 배포 체크리스트
 
 실제 배포 전에 다음 사항을 확인하세요:
 
-#### wrangler.toml
+#### Cloudflare Workers 배포
+
+**wrangler.toml**
 - [ ] `name` 변경 (your-project-name)
 - [ ] `env.production.name` 변경 (your-project-name-production)
 - [ ] `env.staging.name` 변경 (your-project-name-staging)
 
-#### Cloudflare Secrets
-- [ ] Staging 환경 Secrets 설정 완료
-  - VITE_SUPABASE_URL
-  - VITE_SUPABASE_ANON_KEY
-  - DATABASE_URL
-  - SUPABASE_SERVICE_ROLE_KEY
-  - RESEND_API_KEY
-  - RESEND_FROM_EMAIL
-- [ ] Production 환경 Secrets 설정 완료
-  - VITE_SUPABASE_URL
-  - VITE_SUPABASE_ANON_KEY
-  - DATABASE_URL
-  - SUPABASE_SERVICE_ROLE_KEY
-  - RESEND_API_KEY
-  - RESEND_FROM_EMAIL
+**Cloudflare Secrets (필수 3개)**
+- [ ] `DATABASE_URL` - PostgreSQL 연결 문자열
+- [ ] `BASE_URL` - 애플리케이션 기본 URL (OAuth 콜백용)
+- [ ] `BETTER_AUTH_SECRET` - Better Auth 암호화 키 (최소 32자)
 
-#### GitHub Secrets
-- [ ] CLOUDFLARE_API_TOKEN 추가
-- [ ] CLOUDFLARE_ACCOUNT_ID 추가
+**Cloudflare Secrets (선택)**
+- [ ] `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth
+- [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
+- [ ] `KAKAO_CLIENT_ID` / `KAKAO_CLIENT_SECRET` - Kakao OAuth
+- [ ] `RESEND_API_KEY` / `RESEND_FROM_EMAIL` - 이메일 서비스
 
-#### GitHub Workflow
-- [ ] `.github/workflows/deploy.yml`의 URL 수정
-  - staging URL
-  - production URL
+**GitHub Secrets**
+- [ ] `CLOUDFLARE_API_TOKEN` 추가
+- [ ] `CLOUDFLARE_ACCOUNT_ID` 추가
 
-#### 배포 테스트
-- [ ] `bun run build` 성공 확인
+---
+
+#### Docker 배포
+
+**환경 변수 파일 (docker/.env.docker)**
+- [ ] `DATABASE_URL` 설정
+- [ ] `BASE_URL` 설정
+- [ ] `BETTER_AUTH_SECRET` 변경 (프로덕션용)
+
+**빌드 및 실행**
+- [ ] `bun run build:node` 성공 확인
+- [ ] `bun run docker:build` 성공 확인
+- [ ] 컨테이너 실행 테스트
+
+---
+
+#### 공통 배포 테스트
 - [ ] `bun run typecheck` 에러 없음 확인
-- [ ] Staging 배포 테스트
+- [ ] 로컬 환경에서 기능 테스트 완료
+- [ ] Staging 환경 배포 테스트
 - [ ] Production 배포 전 최종 확인
 
 ---
@@ -526,9 +679,32 @@ app/
 │
 ├── root.tsx                    # 루트 레이아웃
 ├── routes.ts                   # 라우트 설정
-├── entry.server.tsx            # 서버 진입점
-│
-└── workers/app.ts              # Composition Root (진입점)
+└── entry.server.tsx            # 서버 진입점
+
+adapters/                        # 🆕 플랫폼별 어댑터
+├── shared/                     # 공통 인터페이스
+│   ├── env.interface.ts       # AppEnv 타입
+│   ├── context.interface.ts   # 플랫폼별 컨텍스트
+│   ├── node.env.adapter.ts    # Node.js 환경 변수 추출
+│   └── react-router.d.ts      # React Router 타입 확장
+├── cloudflare/                 # Cloudflare Workers 어댑터
+│   ├── env.adapter.ts
+│   └── app.ts                 # Cloudflare 진입점
+├── express/                    # Express 어댑터
+│   └── server.ts
+└── fastify/                    # Fastify 어댑터
+    └── server.ts
+
+docker/                          # 🆕 Docker 배포 설정
+├── Dockerfile                  # 멀티 스테이지 빌드
+├── docker-compose.yml          # Docker Compose 설정
+└── .env.docker                 # Docker 환경 변수 예시
+
+server/                          # 🆕 Node.js SSR 서버
+└── app.ts                      # 개발 서버 진입점 (tsx watch용)
+
+server.js                        # 🆕 프로덕션 진입점 (Node.js)
+workers/app.ts                   # Cloudflare Workers 진입점 (레거시)
 ```
 
 ---
@@ -714,18 +890,21 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
 ### 🔧 DI Container 사용법
 
-#### Composition Root (`workers/app.ts`)
+#### Composition Root (플랫폼별 어댑터)
 
-모든 의존성이 조립되는 시작점:
+모든 의존성이 조립되는 시작점은 플랫폼에 따라 다릅니다:
 
+**Cloudflare Workers** (`adapters/cloudflare/app.ts`):
 ```typescript
-// workers/app.ts
 import { createContainer } from "~/infrastructure/config/container";
+import { extractEnvFromCloudflare } from "./env.adapter";
 
 export default {
   async fetch(request, env, ctx) {
+    // Cloudflare 환경에서 AppEnv 추출
+    const appEnv = extractEnvFromCloudflare(env);
     // Container 생성 (매 요청마다)
-    const container = createContainer(env);
+    const container = createContainer(appEnv);
 
     return requestHandler(request, {
       cloudflare: { env, ctx },
@@ -733,6 +912,17 @@ export default {
     });
   },
 };
+```
+
+**Express/Fastify** (`adapters/express/server.ts`, `adapters/fastify/server.ts`):
+```typescript
+import { createContainer } from "~/infrastructure/config/container";
+import { extractEnvFromNode } from "../shared/node.env.adapter";
+
+// Node.js 환경에서 AppEnv 추출
+const appEnv = extractEnvFromNode();
+// Container 생성 (서버 시작 시 1회)
+const container = createContainer(appEnv);
 ```
 
 #### Container 구조 (`infrastructure/config/container.ts`)
