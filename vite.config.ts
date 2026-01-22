@@ -1,14 +1,15 @@
-import { cloudflare } from "@cloudflare/vite-plugin";
-import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+/**
+ * Vite 설정 - 플랫폼별 조건부 로드
+ *
+ * PLATFORM 환경 변수에 따라 적절한 설정을 로드합니다.
+ * - PLATFORM=cloudflare (기본값): Cloudflare Workers 설정
+ * - PLATFORM=node: Node.js (Express/Fastify) 설정
+ */
+const platform = process.env.PLATFORM || "cloudflare";
 
-export default defineConfig({
-	plugins: [
-		cloudflare({ viteEnvironment: { name: "ssr" } }),
-		tailwindcss(),
-		reactRouter(),
-		tsconfigPaths(),
-	],
-});
+const config =
+	platform === "node"
+		? (await import("./vite.config.node")).default
+		: (await import("./vite.config.cloudflare")).default;
+
+export default config;

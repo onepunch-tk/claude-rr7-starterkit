@@ -1,4 +1,36 @@
+# 빌드 결과물 및 캐시 (매번 새로 생성됨)
 .react-router
 build
 node_modules
+
+# Git 및 버전 관리
+.git
+.gitignore
+
+# CI/CD 및 개발 도구
+.github
+.claude
+.mcp.json
+
+# 환경 변수 파일 (보안)
+.env
+.env.local
+.env.*.local
+
+# Docker 관련 (재귀 방지)
+docker/
+
+# 문서
 README.md
+docs/
+*.md
+
+# OS 및 IDE 파일
+.DS_Store
+.vscode
+.idea
+
+# 테스트 및 커버리지
+coverage/
+*.test.ts
+*.spec.ts

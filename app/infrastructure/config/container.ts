@@ -10,18 +10,18 @@ import {
 	createProfileRepositoryImpl,
 	createUserRepositoryImpl,
 } from "~/infrastructure/persistence/drizzle/user.repository.impl";
-import type { CloudflareAuthEnv } from "./env";
+import type { AppEnv } from "./env";
 
 /**
  * DI Container 생성
  *
  * Composition Root에서 호출되어 모든 의존성을 생성하고 주입합니다.
- * Cloudflare Workers 환경에서는 매 요청마다 새로운 컨테이너가 생성됩니다.
+ * 모든 플랫폼(Cloudflare, Express, Fastify)에서 사용됩니다.
  *
- * @param env - Cloudflare Workers 환경 변수
+ * @param env - 애플리케이션 환경 변수
  * @returns IContainer 인터페이스를 구현하는 컨테이너
  */
-export const createContainer = (env: CloudflareAuthEnv): IContainer => {
+export const createContainer = (env: AppEnv): IContainer => {
 	// 필수 환경 변수 검증
 	if (!env?.DATABASE_URL || !env?.BASE_URL || !env?.BETTER_AUTH_SECRET) {
 		throw new Error(
