@@ -1,8 +1,8 @@
-# Conventional Commits 규칙
+# Conventional Commits Rules
 
-[Conventional Commits 1.0.0](https://www.conventionalcommits.org/ko/v1.0.0/) 스펙을 따른다.
+Follows the [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification.
 
-## 커밋 메시지 형식
+## Commit Message Format
 
 ```
 <emoji> <type>[scope][!]: <description>
@@ -12,39 +12,39 @@
 [footer]
 ```
 
-### 필수 요소
+### Required Elements
 
-- `<emoji>`: 타입에 해당하는 이모지
-- `<type>`: 커밋 타입 (아래 표 참조)
-- `<description>`: 변경 사항 요약 (한국어)
+- `<emoji>`: Emoji corresponding to the type
+- `<type>`: Commit type (see table below)
+- `<description>`: Summary of changes (in Korean)
 
-### 선택 요소
+### Optional Elements
 
-- `[scope]`: 변경 범위 (예: `feat(auth):`, `fix(api):`)
-- `[!]`: Breaking Change 표시 (예: `feat!:`, `feat(auth)!:`)
-- `[body]`: 상세 설명 (bullet point 형식)
-- `[footer]`: Breaking Change 설명 등
+- `[scope]`: Scope of change (e.g., `feat(auth):`, `fix(api):`)
+- `[!]`: Breaking Change indicator (e.g., `feat!:`, `feat(auth)!:`)
+- `[body]`: Detailed description (bullet point format)
+- `[footer]`: Breaking Change explanation, etc.
 
-## 타입 & 이모지 맵
+## Type & Emoji Map
 
-| 타입 | 이모지 | 설명 | 예시 |
-|------|--------|------|------|
-| `feat` | ✨ | 새 기능 추가 | 새 컴포넌트, API 엔드포인트 |
-| `fix` | 🐛 | 버그 수정 | 로직 오류, 예외 처리 |
-| `docs` | 📝 | 문서 변경 | README, 주석, JSDoc |
-| `style` | 💄 | 코드 스타일 | 포맷팅, 세미콜론, 공백 |
-| `refactor` | ♻️ | 리팩토링 | 동작 변경 없는 코드 개선 |
-| `perf` | ⚡ | 성능 개선 | 최적화, 캐싱 |
-| `test` | ✅ | 테스트 | 테스트 추가/수정 |
-| `chore` | 🔧 | 설정/빌드 | package.json, 설정 파일 |
-| `ci` | 🚀 | CI/CD | GitHub Actions, 배포 스크립트 |
-| `build` | 📦 | 빌드 시스템 | 의존성 변경, 빌드 도구 |
-| `revert` | ⏪ | 되돌리기 | 이전 커밋 취소 |
+| Type | Emoji | Description | Examples |
+|------|-------|-------------|----------|
+| `feat` | ✨ | New feature | New component, API endpoint |
+| `fix` | 🐛 | Bug fix | Logic error, exception handling |
+| `docs` | 📝 | Documentation change | README, comments, JSDoc |
+| `style` | 💄 | Code style | Formatting, semicolons, whitespace |
+| `refactor` | ♻️ | Refactoring | Code improvement without behavior change |
+| `perf` | ⚡ | Performance improvement | Optimization, caching |
+| `test` | ✅ | Tests | Add/modify tests |
+| `chore` | 🔧 | Config/build | package.json, config files |
+| `ci` | 🚀 | CI/CD | GitHub Actions, deployment scripts |
+| `build` | 📦 | Build system | Dependency changes, build tools |
+| `revert` | ⏪ | Revert | Undo previous commit |
 
-## 브랜치 기반 타입 추론
+## Branch-Based Type Inference
 
-| 브랜치 패턴 | 추론 타입 |
-|------------|-----------|
+| Branch Pattern | Inferred Type |
+|----------------|---------------|
 | `feature/*`, `feat/*` | `feat` |
 | `fix/*`, `bugfix/*`, `hotfix/*` | `fix` |
 | `docs/*` | `docs` |
@@ -52,136 +52,136 @@
 | `test/*` | `test` |
 | `chore/*` | `chore` |
 
-## 파일 기반 타입 추론
+## File-Based Type Inference
 
-### 파일 확장자/경로
+### File Extensions/Paths
 
-| 변경된 파일 | 추론 타입 |
-|------------|-----------|
+| Changed Files | Inferred Type |
+|---------------|---------------|
 | `*.md`, `docs/*` | `docs` |
 | `*.test.*`, `*.spec.*`, `__tests__/*` | `test` |
 | `package.json`, `tsconfig.json`, `.eslintrc` | `chore` |
 | `.github/*`, `Dockerfile`, `*.yml` (CI) | `ci` |
 
-### 변경 내용 키워드
+### Change Content Keywords
 
-| diff 내용 | 추론 타입 |
-|-----------|-----------|
-| `TODO`, `FIXME` 제거 | `fix` |
-| `console.log` 제거 | `chore` |
-| 새 함수/컴포넌트 추가 | `feat` |
-| import 정리만 | `style` |
+| Diff Content | Inferred Type |
+|--------------|---------------|
+| `TODO`, `FIXME` removed | `fix` |
+| `console.log` removed | `chore` |
+| New function/component added | `feat` |
+| Import cleanup only | `style` |
 
-## 타입 추론 우선순위
+## Type Inference Priority
 
-1. **브랜치 이름** (가장 우선)
-2. **변경된 파일 경로/확장자**
-3. **diff 내용 분석**
-4. **기본값**: `feat`
+1. **Branch name** (highest priority)
+2. **Changed file paths/extensions**
+3. **Diff content analysis**
+4. **Default**: `feat`
 
-## Breaking Change 표기
+## Breaking Change Notation
 
-### 방법 1: 타입 뒤에 `!` 추가
-
-```
-✨ feat!: API 응답 구조 변경
-```
-
-### 방법 2: footer에 `BREAKING CHANGE:` 추가
+### Method 1: Add `!` after type
 
 ```
-✨ feat: API 응답 구조 변경
-
-- 응답 객체 필드명 변경
-- 페이지네이션 구조 변경
-
-BREAKING CHANGE: response.data 가 response.items 로 변경됨
+✨ feat!: Change API response structure
 ```
 
-## Scope 사용법
-
-변경이 특정 모듈/영역에 한정될 때 scope 추가:
+### Method 2: Add `BREAKING CHANGE:` in footer
 
 ```
-✨ feat(auth): 소셜 로그인 추가
-🐛 fix(api): 토큰 갱신 오류 수정
-♻️ refactor(components): Button 컴포넌트 분리
+✨ feat: Change API response structure
+
+- Change response object field names
+- Change pagination structure
+
+BREAKING CHANGE: response.data changed to response.items
 ```
 
-## 예시
+## Scope Usage
 
-### 기본 형식
-
-```
-✨ feat: 사용자 인증 기능 추가
-
-- 로그인/회원가입 폼 구현
-- JWT 토큰 처리 로직 추가
-```
-
-### Scope 포함
+Add scope when changes are limited to a specific module/area:
 
 ```
-🐛 fix(auth): 세션 만료 처리 오류 수정
+✨ feat(auth): Add social login
+🐛 fix(api): Fix token refresh error
+♻️ refactor(components): Split Button component
+```
 
-- 토큰 갱신 타이밍 조정
-- 에러 핸들링 개선
+## Examples
+
+### Basic Format
+
+```
+✨ feat: Add user authentication feature
+
+- Implement login/signup forms
+- Add JWT token handling logic
+```
+
+### With Scope
+
+```
+🐛 fix(auth): Fix session expiry handling error
+
+- Adjust token refresh timing
+- Improve error handling
 ```
 
 ### Breaking Change
 
 ```
-✨ feat(api)!: 응답 구조 변경
+✨ feat(api)!: Change response structure
 
 - response.data → response.items
-- 페이지네이션 메타데이터 추가
+- Add pagination metadata
 
-BREAKING CHANGE: 기존 API 클라이언트 수정 필요
+BREAKING CHANGE: Existing API clients need modification
 ```
 
-### 브랜치 기반 추론
+### Branch-Based Inference
 
-브랜치 `feature/user-auth`:
+Branch `feature/user-auth`:
 ```
-✨ feat: 사용자 인증 기능 추가
-```
-
-브랜치 `hotfix/login-bug`:
-```
-🐛 fix: 로그인 버그 수정
+✨ feat: Add user authentication feature
 ```
 
-### 파일 기반 추론
-
-변경 파일 `README.md`:
+Branch `hotfix/login-bug`:
 ```
-📝 docs: README 업데이트
+🐛 fix: Fix login bug
 ```
 
-## 커밋 메시지 작성 규칙
+### File-Based Inference
 
-### 길이 제한
+Changed file `README.md`:
+```
+📝 docs: Update README
+```
 
-- **제목 (첫 줄)**: 72자 미만 (이모지 + 타입 + scope 포함)
-- 본문: 줄당 72자 권장
+## Commit Message Writing Rules
 
-### 어조
+### Length Limits
 
-- **명령형** 사용 (현재형, 동사로 시작)
-- ✅ "추가", "수정", "삭제", "개선", "리팩토링"
-- ❌ "추가됨", "수정했음", "삭제했습니다"
+- **Subject (first line)**: Under 72 characters (including emoji + type + scope)
+- Body: 72 characters per line recommended
 
-### 원자적 커밋 (Atomic Commits)
+### Tone
 
-- **하나의 커밋 = 하나의 논리적 변경**
-- 관련 없는 변경사항은 분할 필수
-- 예시:
-  - ❌ `feat: 로그인 기능 추가 및 버그 수정` (혼재)
-  - ✅ `feat: 로그인 기능 추가` + `fix: 세션 버그 수정` (분할)
+- Use **imperative mood** (present tense, start with verb)
+- ✅ "Add", "Fix", "Delete", "Improve", "Refactor"
+- ❌ "Added", "Fixed", "Deleted"
 
-## 금지 사항
+### Atomic Commits
 
-- ❌ `hotfix:` 타입 사용 → `fix` 사용
-- ❌ `merge:` 타입 사용 → Git 자동 생성 메시지 사용
-- ❌ 비표준 타입 사용 (위 표에 없는 타입)
-- ❌ `Co-Authored-By` 패턴 추가
+- **One commit = One logical change**
+- Unrelated changes must be split
+- Example:
+  - ❌ `feat: Add login feature and fix bug` (mixed)
+  - ✅ `feat: Add login feature` + `fix: Fix session bug` (split)
+
+## Prohibited
+
+- ❌ Using `hotfix:` type → Use `fix`
+- ❌ Using `merge:` type → Use Git auto-generated message
+- ❌ Using non-standard types (types not in the table above)
+- ❌ Adding `Co-Authored-By` pattern

@@ -1,60 +1,60 @@
 # Git Push
 
-현재 브랜치를 원격 저장소에 push한다.
+Push current branch to remote repository.
 
-## 워크플로우
+## Workflow
 
-### 1. 현재 브랜치 확인
+### 1. Check Current Branch
 
 ```bash
 git branch --show-current
 ```
 
-### 2. 원격 브랜치 상태 확인
+### 2. Check Remote Branch Status
 
 ```bash
 git status
 ```
 
-- 로컬 커밋이 있는지 확인
-- 원격과 동기화 상태 확인
+- Check if local commits exist
+- Check sync status with remote
 
-### 3. Push 실행
+### 3. Execute Push
 
 ```bash
-git push origin <현재브랜치>
+git push origin <current-branch>
 ```
 
-## 예시
+## Examples
 
-### 일반적인 경우
+### Normal Case
 
-현재 브랜치: `main`
+Current branch: `main`
 
 ```bash
 git push origin main
 ```
 
-### feature 브랜치
+### Feature Branch
 
-현재 브랜치: `feature/user-auth`
+Current branch: `feature/user-auth`
 
 ```bash
 git push origin feature/user-auth
 ```
 
-## 출력 형식
+## Output Format
 
 ```
-📤 Push 시작
-   브랜치: <현재 브랜치>
-   대상: origin/<현재 브랜치>
+📤 Push Started
+   Branch: <current branch>
+   Target: origin/<current branch>
 
-✅ Push 완료
+✅ Push Complete
 ```
 
-## 주의사항
+## Cautions
 
-- push할 커밋이 없으면 알림
-- 원격에 변경사항이 있으면 pull 먼저 권장
-- force push는 수행하지 않음
+- Notify if no commits to push
+- Recommend pull first if remote has changes
+- Never perform force push

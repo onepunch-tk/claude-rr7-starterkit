@@ -1,50 +1,50 @@
 # Git Merge (Trunk-Based)
 
-현재 feature 브랜치를 main 브랜치에 merge한다 (Trunk-Based Development).
+Merge current feature branch into main branch (Trunk-Based Development).
 
-## 워크플로우
+## Workflow
 
 ```
-[1] 현재 브랜치 확인
+[1] Check current branch
        ↓
-[2] main 브랜치 최신화
+[2] Update main branch
        ↓
-[3] main으로 체크아웃
+[3] Checkout to main
        ↓
-[4] feature 브랜치 merge (--no-ff)
+[4] Merge feature branch (--no-ff)
        ↓
-[5] main push
+[5] Push main
        ↓
-[6] feature 브랜치 삭제 여부 질문
+[6] Ask about feature branch deletion
 ```
 
-## 단계별 상세
+## Step-by-Step Details
 
-### 1. 현재 브랜치 확인
+### 1. Check Current Branch
 
 ```bash
 git branch --show-current
 ```
 
-**main 브랜치인 경우**: 중단하고 안내
+**If on main branch**: Stop and notify
 ```
-⚠️ 현재 main 브랜치입니다.
-   merge할 feature 브랜치로 먼저 체크아웃하세요.
+⚠️ Currently on main branch.
+   Please checkout to a feature branch to merge first.
 ```
 
-### 2. 변경사항 확인
+### 2. Check for Changes
 
 ```bash
 git status
 ```
 
-**커밋되지 않은 변경사항이 있는 경우**: 중단하고 안내
+**If uncommitted changes exist**: Stop and notify
 ```
-⚠️ 커밋되지 않은 변경사항이 있습니다.
-   먼저 commit 또는 stash 후 다시 시도하세요.
+⚠️ Uncommitted changes detected.
+   Please commit or stash first, then try again.
 ```
 
-### 3. main 브랜치 최신화
+### 3. Update Main Branch
 
 ```bash
 git fetch origin main
@@ -52,97 +52,97 @@ git checkout main
 git pull origin main
 ```
 
-### 4. Feature 브랜치 Merge
+### 4. Merge Feature Branch
 
 ```bash
 git merge --no-ff <feature-branch> -m "🔀 merge: <feature-branch> → main
 
-- 기능 요약 (변경 내용 분석 기반)"
+- Feature summary (based on change analysis)"
 ```
 
-**`--no-ff` 사용 이유**: merge commit을 생성하여 브랜치 히스토리 명확화
+**Reason for `--no-ff`**: Creates merge commit to clarify branch history
 
-**참고**: 머지 커밋은 Conventional Commits 표준 타입이 아니므로 이모지 + merge 형식을 사용한다.
+**Note**: Merge commits use emoji + merge format since it's not a Conventional Commits standard type.
 
-### 5. Main Push
+### 5. Push Main
 
 ```bash
 git push origin main
 ```
 
-### 6. Feature 브랜치 삭제 여부
+### 6. Feature Branch Deletion
 
-**AskUserQuestion 사용**:
+**Use AskUserQuestion**:
 ```
-feature 브랜치 '<branch-name>'을 삭제할까요?
+Delete feature branch '<branch-name>'?
 
-옵션:
-1. 삭제 (로컬 + 원격)
-2. 로컬만 삭제
-3. 유지
+Options:
+1. Delete (local + remote)
+2. Delete local only
+3. Keep
 ```
 
-**삭제 선택 시**:
+**If deletion selected**:
 ```bash
-# 로컬 삭제
+# Delete local
 git branch -d <feature-branch>
 
-# 원격 삭제 (선택한 경우)
+# Delete remote (if selected)
 git push origin --delete <feature-branch>
 ```
 
-## 출력 형식
+## Output Format
 
 ```
 ═══════════════════════════════════════
-🔀 Git Merge (Trunk-Based) 시작
+🔀 Git Merge (Trunk-Based) Started
 ═══════════════════════════════════════
 
-[1/5] 현재 브랜치 확인...
-      브랜치: feature/user-auth
+[1/5] Checking current branch...
+      Branch: feature/user-auth
 
-[2/5] main 브랜치 최신화...
-      ✅ main 최신화 완료
+[2/5] Updating main branch...
+      ✅ Main updated
 
-[3/5] main으로 체크아웃...
-      ✅ main 체크아웃 완료
+[3/5] Checking out to main...
+      ✅ Main checkout complete
 
-[4/5] feature 브랜치 merge...
-      ✅ merge 완료 (--no-ff)
+[4/5] Merging feature branch...
+      ✅ Merge complete (--no-ff)
 
-[5/5] main push...
-      ✅ Push 완료
+[5/5] Pushing main...
+      ✅ Push complete
 
 ───────────────────────────────────────
-✅ Git Merge 완료
+✅ Git Merge Complete
 ───────────────────────────────────────
 ```
 
-## 예시
+## Examples
 
-### feature 브랜치에서 실행
+### Execute from Feature Branch
 
-현재 브랜치: `feature/user-auth`
+Current branch: `feature/user-auth`
 
-1. main 최신화
-2. main 체크아웃
+1. Update main
+2. Checkout main
 3. `git merge --no-ff feature/user-auth -m "🔀 merge: feature/user-auth → main"`
-4. main push
-5. 브랜치 삭제 여부 질문
+4. Push main
+5. Ask about branch deletion
 
-### 머지 커밋 메시지 예시
+### Merge Commit Message Example
 
 ```
 🔀 merge: feature/user-auth → main
 
-- 사용자 인증 기능 구현
-- 로그인/회원가입 플로우 추가
+- Implement user authentication feature
+- Add login/signup flow
 ```
 
-## 주의사항
+## Cautions
 
-- main 브랜치에서 실행 시 중단
-- 커밋되지 않은 변경사항이 있으면 중단
-- merge conflict 발생 시 수동 해결 안내
-- force push는 수행하지 않음
-- `Co-Authored-By` 패턴 절대 추가 금지
+- Stop if executed from main branch
+- Stop if uncommitted changes exist
+- Guide manual resolution if merge conflict occurs
+- Never perform force push
+- Never add `Co-Authored-By` pattern

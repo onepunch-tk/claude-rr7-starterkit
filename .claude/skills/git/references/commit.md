@@ -1,109 +1,109 @@
 # Git Commit
 
-변경사항을 분석하고 Conventional Commits 형식의 커밋 메시지를 생성하여 커밋한다.
+Analyzes changes and creates a commit with a Conventional Commits format message.
 
-## 파라미터
+## Parameters
 
-`$ARGUMENTS`: 선택적 커밋 메시지. 제공 시 해당 메시지 사용, 미제공 시 자동 생성.
+`$ARGUMENTS`: Optional commit message. Uses provided message if given, auto-generates if not.
 
-## 워크플로우
+## Workflow
 
-### 1. 변경사항 수집 (스테이지 하지 않음)
+### 1. Collect Changes (without staging)
 
 ```bash
 git status
-git diff --cached  # 이미 스테이지된 파일 확인
-git diff           # 아직 스테이지되지 않은 변경사항
+git diff --cached  # Check already staged files
+git diff           # Changes not yet staged
 git branch --show-current
 ```
 
-### 2. 분기 처리
+### 2. Branch Processing
 
-**A) 이미 스테이지된 파일 있음** → 해당 파일만 커밋 (분할 분석 생략, 5단계로 이동)
+**A) Already staged files exist** → Commit only those files (skip split analysis, go to step 5)
 
-**B) 스테이지된 파일 없음** → 3단계로 진행
+**B) No staged files** → Proceed to step 3
 
-### 3. 논리적 변경사항 분석
+### 3. Logical Change Analysis
 
-수집된 정보로 핵심 요약:
-- 어떤 파일이 변경되었는가?
-- 어떤 종류의 변경인가? (추가/수정/삭제)
-- 변경의 목적은 무엇인가?
-- **여러 목적의 변경이 섞여있는지 확인**
-  - 서로 다른 기능/버그/리팩토링이 혼재된 경우 감지
-  - 예: feat + fix, refactor + feat 등
+Core summary from collected information:
+- Which files were changed?
+- What kind of changes? (add/modify/delete)
+- What is the purpose of the changes?
+- **Check if changes with multiple purposes are mixed**
+  - Detect when different features/bugs/refactoring are mixed
+  - Example: feat + fix, refactor + feat, etc.
 
-### 4. 분할 필요시 제안
+### 4. Suggest Split When Needed
 
-2개 이상의 논리적 변경사항 감지 시, 사용자에게 분할 커밋 제안 (AskUserQuestion):
+When 2 or more logical changes detected, suggest split commit to user (AskUserQuestion):
 
 ```json
 {
   "questions": [{
-    "header": "커밋 분할",
-    "question": "2개의 논리적 변경사항이 감지되었습니다:\n1. ✨ feat: 로그인 폼 추가\n2. 🐛 fix: 세션 만료 버그\n\n분할 커밋할까요?",
+    "header": "Commit Split",
+    "question": "2 logical changes detected:\n1. ✨ feat: Add login form\n2. 🐛 fix: Session expiry bug\n\nSplit into separate commits?",
     "multiSelect": false,
     "options": [
-      { "label": "분할", "description": "2개의 커밋으로 분리" },
-      { "label": "통합", "description": "하나의 커밋으로 유지" }
+      { "label": "Split", "description": "Separate into 2 commits" },
+      { "label": "Combine", "description": "Keep as single commit" }
     ]
   }]
 }
 ```
 
-### 5. 커밋 메시지 결정
+### 5. Determine Commit Message
 
-**$ARGUMENTS 존재 시**: 해당 메시지를 description으로 사용
+**If $ARGUMENTS provided**: Use that message as description
 
-**$ARGUMENTS 미존재 시**: 변경사항 기반 메시지 자동 생성
+**If $ARGUMENTS not provided**: Auto-generate message based on changes
 
-### 6. 타입 & 이모지 추론
+### 6. Type & Emoji Inference
 
-[commit-prefix-rules.md](commit-prefix-rules.md) 참조
+See [commit-prefix-rules.md](commit-prefix-rules.md)
 
-추론 우선순위:
-1. 브랜치 이름 (feature/*, fix/*, hotfix/*, docs/* 등)
-2. 변경된 파일 경로/확장자
-3. diff 내용 분석
-4. 기본값: `feat`
+Inference priority:
+1. Branch name (feature/*, fix/*, hotfix/*, docs/*, etc.)
+2. Changed file paths/extensions
+3. Diff content analysis
+4. Default: `feat`
 
-### 7. 스테이지 & 커밋 실행
+### 7. Stage & Execute Commit
 
-**분할 O** → 파일별 선택적 git add + 각각 커밋 (반복)
+**Split Y** → Selective git add per file + commit each (repeat)
 
 ```bash
-# 첫 번째 변경사항
+# First change
 git add src/login.tsx src/auth.ts
-git commit -m "<emoji> <type>: 메시지"
+git commit -m "<emoji> <type>: message"
 
-# 두 번째 변경사항
+# Second change
 git add src/session.ts
-git commit -m "<emoji> <type>: 메시지"
+git commit -m "<emoji> <type>: message"
 ```
 
-**분할 X** → git add . + 단일 커밋
+**Split N** → git add . + single commit
 
 ```bash
 git add .
-git commit -m "<emoji> <type>: 메시지 제목
+git commit -m "<emoji> <type>: message subject
 
-- 상세 변경 내용 1
-- 상세 변경 내용 2"
+- detailed change 1
+- detailed change 2"
 ```
 
-## 커밋 메시지 형식 (Conventional Commits)
+## Commit Message Format (Conventional Commits)
 
 ```
 <emoji> <type>[scope][!]: <description>
 
-- [상세 변경 내용 1]
-- [상세 변경 내용 2]
+- [detailed change 1]
+- [detailed change 2]
 ```
 
-### 타입 & 이모지 맵
+### Type & Emoji Map
 
-| 타입 | 이모지 |
-|------|--------|
+| Type | Emoji |
+|------|-------|
 | `feat` | ✨ |
 | `fix` | 🐛 |
 | `docs` | 📝 |
@@ -116,80 +116,80 @@ git commit -m "<emoji> <type>: 메시지 제목
 | `build` | 📦 |
 | `revert` | ⏪ |
 
-## 예시
+## Examples
 
-### $ARGUMENTS 제공 시
+### When $ARGUMENTS provided
 
-입력: `로그인 버그 수정`
+Input: `Fix login bug`
 
-출력:
+Output:
 ```
-🐛 fix: 로그인 버그 수정
+🐛 fix: Fix login bug
 
-- 세션 만료 처리 로직 수정
-- 에러 메시지 개선
-```
-
-### $ARGUMENTS 미제공 시
-
-변경: `src/components/Header.tsx` 새 파일 추가
-
-출력:
-```
-✨ feat: Header 컴포넌트 추가
-
-- 반응형 네비게이션 구현
-- 로고 및 메뉴 아이템 렌더링
+- Fix session expiry handling logic
+- Improve error messages
 ```
 
-### Scope 포함 예시
+### When $ARGUMENTS not provided
 
-입력: `인증 토큰 갱신 오류 수정`
+Change: New file `src/components/Header.tsx` added
 
-출력:
+Output:
 ```
-🐛 fix(auth): 인증 토큰 갱신 오류 수정
+✨ feat: Add Header component
 
-- 토큰 갱신 타이밍 조정
-- 에러 핸들링 개선
+- Implement responsive navigation
+- Render logo and menu items
 ```
 
-### Breaking Change 예시
+### Example with Scope
 
-입력: `API 응답 구조 변경 (Breaking)`
+Input: `Fix auth token refresh error`
 
-출력:
+Output:
 ```
-✨ feat(api)!: API 응답 구조 변경
+🐛 fix(auth): Fix auth token refresh error
+
+- Adjust token refresh timing
+- Improve error handling
+```
+
+### Breaking Change Example
+
+Input: `Change API response structure (Breaking)`
+
+Output:
+```
+✨ feat(api)!: Change API response structure
 
 - response.data → response.items
-- 페이지네이션 메타데이터 추가
+- Add pagination metadata
 
-BREAKING CHANGE: 기존 API 클라이언트 수정 필요
+BREAKING CHANGE: Existing API clients need modification
 ```
 
-## 커밋 메시지 규칙
+## Commit Message Rules
 
-### 길이 제한
+### Length Limits
 
-- **제목 (첫 줄)**: 72자 미만 (이모지 + 타입 + scope 포함)
-- 본문: 줄당 72자 권장
+- **Subject (first line)**: Under 72 characters (including emoji + type + scope)
+- Body: 72 characters per line recommended
 
-### 어조
+### Tone
 
-- **명령형** 사용 (현재형, 동사로 시작)
-- ✅ "추가", "수정", "삭제", "개선", "리팩토링"
-- ❌ "추가됨", "수정했음", "삭제했습니다"
+- Use **imperative mood** (present tense, start with verb)
+- ✅ "Add", "Fix", "Delete", "Improve", "Refactor"
+- ❌ "Added", "Fixed", "Deleted"
 
-### 원자적 커밋 원칙
+### Atomic Commit Principle
 
-- **단일 목적**: 하나의 커밋은 하나의 논리적 변경만 포함
-- 관련 없는 변경사항은 별도 커밋으로 분할
-- 예: feat + fix 혼재 → 2개 커밋으로 분리
+- **Single purpose**: One commit contains only one logical change
+- Split unrelated changes into separate commits
+- Example: feat + fix mixed → Split into 2 commits
 
-## 주의사항
+## Cautions
 
-- 커밋 전 변경사항이 없으면 커밋하지 않음
-- 민감한 파일(.env, credentials 등) 포함 시 경고
-- 한국어로 커밋 메시지 작성
-- `Co-Authored-By` 패턴 절대 추가 금지
+- Don't commit if no changes exist
+- Warn if sensitive files (.env, credentials, etc.) are included
+- Write commit messages in Korean
+- Never add `Co-Authored-By` pattern

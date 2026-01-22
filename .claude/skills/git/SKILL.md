@@ -1,8 +1,8 @@
 ---
 name: git
 description: |
-  Git 자동화 스킬. /git 명령어 실행 시 작업 선택 UI 제공.
-  commit, push, sync, merge 작업 중 선택 가능.
+  Git automation skill. Provides task selection UI when /git command is executed.
+  Choose from commit, push, sync, merge operations.
 model: opus
 allowed-tools:
   - Bash
@@ -12,155 +12,155 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# Git 자동화 스킬
+# Git Automation Skill
 
-`/git` 명령어 실행 시 작업을 선택한다.
+Select a task when the `/git` command is executed.
 
-## 아규먼트 파싱
+## Argument Parsing
 
-스킬 호출 시 `args` 파라미터를 파싱하여 작업과 메시지를 분리한다.
+Parse the `args` parameter when the skill is invoked to separate the action and message.
 
-### 파싱 규칙
+### Parsing Rules
 
-| 입력 예시 | 파싱 결과 |
-|-----------|-----------|
-| (없음) | action=없음, message=없음 |
-| `"로그인 기능"` | action=없음, message="로그인 기능" |
-| `commit` | action=commit, message=없음 |
-| `commit "로그인 기능"` | action=commit, message="로그인 기능" |
-| `sync` | action=sync, message=없음 |
-| `sync "로그인 기능"` | action=sync, message="로그인 기능" |
+| Input Example | Parsing Result |
+|---------------|----------------|
+| (none) | action=none, message=none |
+| `"Login feature"` | action=none, message="Login feature" |
+| `commit` | action=commit, message=none |
+| `commit "Login feature"` | action=commit, message="Login feature" |
+| `sync` | action=sync, message=none |
+| `sync "Login feature"` | action=sync, message="Login feature" |
 | `push` | action=push |
 | `merge` | action=merge |
 
-### 파싱 방법
+### Parsing Method
 
-1. args가 따옴표로 시작하면 → 전체를 message로 처리 (action 없음)
-2. args가 `commit`, `sync`, `push`, `merge`로 시작하면 → 해당 값을 action으로, 나머지를 message로 처리
-3. 그 외 → action 없음, 전체를 message로 처리
+1. If args starts with quotes → treat entire content as message (no action)
+2. If args starts with `commit`, `sync`, `push`, `merge` → use that value as action, rest as message
+3. Otherwise → no action, treat entire content as message
 
-## 실행 흐름
+## Execution Flow
 
-### 1. action이 없는 경우 → 작업 선택 UI 표시
+### 1. If no action → Display task selection UI
 
-**AskUserQuestion 도구를 호출하여 작업 선택 UI를 제공한다.**
+**Call AskUserQuestion tool to provide task selection UI.**
 
-#### message가 없는 경우:
+#### If no message:
 
 ```json
 {
   "questions": [
     {
-      "header": "Git 작업",
-      "question": "어떤 Git 작업을 수행할까요?",
+      "header": "Git Task",
+      "question": "Which Git operation would you like to perform?",
       "multiSelect": false,
       "options": [
-        { "label": "commit", "description": "변경사항 분석 후 커밋" },
-        { "label": "push", "description": "현재 브랜치 push" },
-        { "label": "sync", "description": "add → commit → push 전체 워크플로우" },
-        { "label": "merge", "description": "trunk-based merge (현재 브랜치 → main)" }
+        { "label": "commit", "description": "Analyze changes and commit" },
+        { "label": "push", "description": "Push current branch" },
+        { "label": "sync", "description": "Full workflow: add → commit → push" },
+        { "label": "merge", "description": "Trunk-based merge (current branch → main)" }
       ]
     }
   ]
 }
 ```
 
-#### message가 있는 경우 (예: `/git "로그인 기능"`):
+#### If message exists (e.g., `/git "Login feature"`):
 
 ```json
 {
   "questions": [
     {
-      "header": "Git 작업",
-      "question": "어떤 Git 작업을 수행할까요? (메시지: \"로그인 기능\")",
+      "header": "Git Task",
+      "question": "Which Git operation would you like to perform? (message: \"Login feature\")",
       "multiSelect": false,
       "options": [
-        { "label": "commit", "description": "입력한 메시지로 커밋" },
-        { "label": "sync", "description": "입력한 메시지로 add → commit → push" },
-        { "label": "push", "description": "현재 브랜치 push (메시지 사용 안함)" },
-        { "label": "merge", "description": "trunk-based merge (메시지 사용 안함)" }
+        { "label": "commit", "description": "Commit with provided message" },
+        { "label": "sync", "description": "add → commit → push with provided message" },
+        { "label": "push", "description": "Push current branch (message not used)" },
+        { "label": "merge", "description": "Trunk-based merge (message not used)" }
       ]
     }
   ]
 }
 ```
 
-**UI에서 Other 선택 시:**
-- commit/sync 작업에 사용할 메시지로 처리
+**When Other is selected from UI:**
+- Treat input as message for commit/sync operations
 
-### 2. action이 있는 경우 → 바로 해당 작업 수행
+### 2. If action exists → Execute that operation directly
 
-| action | message 유무 | 동작 |
-|--------|-------------|------|
-| commit | 없음 | 자동 메시지 생성 후 커밋 |
-| commit | 있음 | 해당 메시지로 커밋 |
-| sync | 없음 | 자동 메시지 생성 후 add → commit → push |
-| sync | 있음 | 해당 메시지로 add → commit → push |
-| push | - | 바로 push |
-| merge | - | 브랜치 삭제 여부 질문 후 merge |
+| action | message | behavior |
+|--------|---------|----------|
+| commit | none | Auto-generate message and commit |
+| commit | exists | Commit with provided message |
+| sync | none | Auto-generate message then add → commit → push |
+| sync | exists | add → commit → push with provided message |
+| push | - | Push immediately |
+| merge | - | Ask about branch deletion, then merge |
 
-### 3. 작업별 참조 문서
+### 3. Reference Documents by Operation
 
-| 작업 | 참조 문서 |
-|------|-----------|
+| Operation | Reference Document |
+|-----------|-------------------|
 | commit | [references/commit.md](references/commit.md) |
 | push | [references/push.md](references/push.md) |
 | sync | [references/sync.md](references/sync.md) |
 | merge | [references/merge.md](references/merge.md) |
 
-## 공통 규칙
+## Common Rules
 
-### 커밋 메시지 형식 (Conventional Commits)
+### Commit Message Format (Conventional Commits)
 
 ```
 <emoji> <type>[scope][!]: <description>
 
-- [상세 변경 내용 1]
-- [상세 변경 내용 2]
+- [detailed change 1]
+- [detailed change 2]
 ```
 
-### 타입 & 이모지 맵
+### Type & Emoji Map
 
-| 타입 | 이모지 | 용도 |
-|------|--------|------|
-| `feat` | ✨ | 새 기능 |
-| `fix` | 🐛 | 버그 수정 |
-| `docs` | 📝 | 문서 변경 |
-| `style` | 💄 | 코드 스타일 |
-| `refactor` | ♻️ | 리팩토링 |
-| `perf` | ⚡ | 성능 개선 |
-| `test` | ✅ | 테스트 |
-| `chore` | 🔧 | 설정/빌드 |
+| Type | Emoji | Usage |
+|------|-------|-------|
+| `feat` | ✨ | New feature |
+| `fix` | 🐛 | Bug fix |
+| `docs` | 📝 | Documentation changes |
+| `style` | 💄 | Code style |
+| `refactor` | ♻️ | Refactoring |
+| `perf` | ⚡ | Performance improvement |
+| `test` | ✅ | Tests |
+| `chore` | 🔧 | Config/build |
 | `ci` | 🚀 | CI/CD |
-| `build` | 📦 | 빌드 시스템 |
-| `revert` | ⏪ | 되돌리기 |
+| `build` | 📦 | Build system |
+| `revert` | ⏪ | Revert |
 
-상세 규칙: [references/commit-prefix-rules.md](references/commit-prefix-rules.md)
+Detailed rules: [references/commit-prefix-rules.md](references/commit-prefix-rules.md)
 
-### 커밋 메시지 규칙
+### Commit Message Rules
 
-- **제목 72자 미만** (이모지 + 타입 + scope 포함)
-- **명령형 어조** ("추가" not "추가됨")
-- **원자적 커밋** (단일 목적)
-- 관련 없는 변경사항 분할
+- **Subject under 72 characters** (including emoji + type + scope)
+- **Imperative mood** ("Add" not "Added")
+- **Atomic commits** (single purpose)
+- Split unrelated changes
 
-### 언어 규칙
+### Language Rules
 
-- 커밋 메시지: **한국어**
-- 변수/함수명: **영문**
+- Commit messages: **Korean**
+- Variable/function names: **English**
 
-### 금지 사항 [중요]
+### Prohibited [Important]
 
-- ❌ **`Co-Authored-By` 패턴 사용 금지** (예: `Co-Authored-By: Claude ...`)
-- ❌ **비표준 타입 사용 금지** (위 표에 없는 타입)
-- ❌ **`hotfix:` 타입 금지** → `fix` 사용
-- ❌ **`merge:` 타입 금지** → Git 자동 생성 메시지 사용
-- ❌ **force push 금지**
+- ❌ **Do NOT use `Co-Authored-By` pattern** (e.g., `Co-Authored-By: Claude ...`)
+- ❌ **Do NOT use non-standard types** (types not in the table above)
+- ❌ **Do NOT use `hotfix:` type** → Use `fix`
+- ❌ **Do NOT use `merge:` type** → Use Git auto-generated message
+- ❌ **No force push**
 
-## 참조 문서
+## Reference Documents
 
-- [커밋 워크플로우](references/commit.md)
-- [푸시 워크플로우](references/push.md)
-- [동기화 워크플로우](references/sync.md)
-- [머지 워크플로우](references/merge.md)
-- [커밋 접두사 규칙](references/commit-prefix-rules.md)
+- [Commit Workflow](references/commit.md)
+- [Push Workflow](references/push.md)
+- [Sync Workflow](references/sync.md)
+- [Merge Workflow](references/merge.md)
+- [Commit Prefix Rules](references/commit-prefix-rules.md)

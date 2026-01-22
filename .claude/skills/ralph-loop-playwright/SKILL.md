@@ -1,9 +1,9 @@
 ---
 name: ralph-loop-playwright
 description: |
-  자동화된 디버깅 루프 스킬. 에러 및 목표 도달까지 [테스트→심층분석→계획→컨펌→수정] 사이클 반복.
-  Playwright MCP로 웹 오류 자동 수집, Context7 MCP로 라이브러리 문서 학습.
-  사용 시점: 웹 앱 에러 디버깅, UI 테스트 자동화, 반복적인 수정-검증 작업.
+  Automated debugging loop skill. Repeats [test→deep analysis→plan→confirm→fix] cycle until error resolution and goal achievement.
+  Automatically collects web errors via Playwright MCP, learns library documentation via Context7 MCP.
+  When to use: Web app error debugging, UI test automation, repetitive fix-verify tasks.
 argument-hint: [goal] [url] [max] [email] [password]
 allowed-tools: [
   "mcp__playwright__*",
@@ -14,115 +14,115 @@ model: opus
 
 # Ralph-Loop Playwright
 
-Goal에 도달할 때까지 **테스트 → 분석 → 계획 → 컨펌 → 수정 → 검증** 사이클을 반복한다.
-코드 수정 전 반드시 사용자 승인을 받는다.
+Repeats the **test → analysis → plan → confirm → fix → verify** cycle until the Goal is reached.
+User approval is required before any code modification.
 
-## 사전 요구사항
+## Prerequisites
 
-Playwright MCP와 Context7 MCP가 필요하다.
-`.claude/settings.local.json`에 다음 설정 확인:
+Playwright MCP and Context7 MCP are required.
+Verify the following settings in `.claude/settings.local.json`:
 ```json
 {
   "enabledMcpjsonServers": ["playwright", "context7"]
 }
 ```
 
-## 파라미터
+## Parameters
 
-| 파라미터 | 필수 | 설명 |
-|---------|------|------|
-| `goal` | ✅ | 달성할 목표 |
-| `url` | ❌ | 테스트 대상 URL |
-| `max` | ❌ | 최대 루프 횟수 (0 = 무제한) |
-| `email` | ❌ | 로그인용 이메일 |
-| `password` | ❌ | 로그인용 비밀번호 |
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `goal` | ✅ | Goal to achieve |
+| `url` | ❌ | Target URL for testing |
+| `max` | ❌ | Maximum loop count (0 = unlimited) |
+| `email` | ❌ | Email for login |
+| `password` | ❌ | Password for login |
 
 ---
 
-## 워크플로우
+## Workflow
 
 ```
 LOOP_COUNT = 0
-반복:
+Repeat:
   LOOP_COUNT++
 
-  [PHASE 0] credentials 존재 AND 첫 루프 → 인증
-  [PHASE 1] 오류 수집 → Goal 달성시 종료
-  [PHASE 2] 원인 심층 분석 → 결과 제시 → 사용자 컨펌
-  [PHASE 3] 수정 계획 수립 → 계획 제시 → 사용자 컨펌
-  [PHASE 4] 코드 수정
-  [PHASE 5] 테스트 검증 → PASS=종료, FAIL=다음 루프
+  [PHASE 0] credentials exist AND first loop → authenticate
+  [PHASE 1] collect errors → terminate if Goal achieved
+  [PHASE 2] deep cause analysis → present results → user confirm
+  [PHASE 3] create fix plan → present plan → user confirm
+  [PHASE 4] modify code
+  [PHASE 5] test verification → PASS=terminate, FAIL=next loop
 
-  max 도달시 종료
+  terminate if max reached
 ```
 
 ---
 
-## PHASE 0: 인증 (조건부)
+## PHASE 0: Authentication (Conditional)
 
-**실행 조건**: `LOOP_COUNT == 1` AND `email`, `password` 존재
+**Execution condition**: `LOOP_COUNT == 1` AND `email`, `password` exist
 
-1. 로그인 페이지로 이동 `browser_navigate`
-2. 페이지 스냅샷으로 폼 요소 ref 획득 `browser_snapshot`
-3. credentials 입력 및 제출 `browser_type`, `browser_click`
-4. 인증 결과 확인 `browser_snapshot`
+1. Navigate to login page `browser_navigate`
+2. Get form element refs from page snapshot `browser_snapshot`
+3. Enter credentials and submit `browser_type`, `browser_click`
+4. Verify authentication result `browser_snapshot`
 
-**성공 판정**: URL 변경됨, 로그인 폼 사라짐
-
----
-
-## PHASE 1: 오류 수집
-
-**목적**: 현재 페이지 상태와 에러 수집, Goal 달성 여부 판정
-
-1. 대상 페이지 이동 (url 존재시) `browser_navigate`
-2. 페이지 로드 대기 `browser_wait_for({ time: 2 })`
-3. 콘솔 에러 수집 `browser_console_messages({ level: "error" })`
-4. 페이지 스냅샷 `browser_snapshot`
-5. 스크린샷 `browser_take_screenshot({ fullPage: true })`
-6. 네트워크 실패 확인 `browser_network_requests`
-
-**Goal 달성 조건** (모두 충족):
-- 콘솔 에러 없음
-- 네트워크 실패 없음
-- Goal에 명시된 UI/기능이 정상 동작
-
-**Goal 달성시**: `"✅ GOAL 달성"` 출력 후 **즉시 종료**
+**Success criteria**: URL changed, login form disappeared
 
 ---
 
-## PHASE 2: 원인 심층 분석
+## PHASE 1: Error Collection
 
-> **[필수]** 이 Phase에서는 다음을 반드시 준수해야 합니다:
-> 1. 체계적이고 철저한 분석 수행
-> 2. 분석 결과를 사용자에게 상세히 제시
-> 3. 사용자 확인을 받은 후에만 다음 단계 진행
+**Purpose**: Collect current page state and errors, determine Goal achievement
+
+1. Navigate to target page (if url exists) `browser_navigate`
+2. Wait for page load `browser_wait_for({ time: 2 })`
+3. Collect console errors `browser_console_messages({ level: "error" })`
+4. Page snapshot `browser_snapshot`
+5. Screenshot `browser_take_screenshot({ fullPage: true })`
+6. Check network failures `browser_network_requests`
+
+**Goal achievement conditions** (all must be met):
+- No console errors
+- No network failures
+- UI/functionality specified in Goal works correctly
+
+**On Goal achievement**: Output `"✅ GOAL ACHIEVED"` and **terminate immediately**
+
+---
+
+## PHASE 2: Deep Cause Analysis
+
+> **[Required]** In this Phase, the following must be observed:
+> 1. Perform systematic and thorough analysis
+> 2. Present analysis results to user in detail
+> 3. Proceed to next step only after user confirmation
 >
-> 빠른 응답보다 정확한 분석이 우선입니다.
-> 모든 가능성을 검토하고 증거 기반으로 결론을 도출하세요.
+> Accurate analysis takes priority over fast response.
+> Review all possibilities and derive conclusions based on evidence.
 
-**상세 프로세스**: [references/phase-2-analysis.md](references/phase-2-analysis.md) 참조
+**Detailed process**: See [references/phase-2-analysis.md](references/phase-2-analysis.md)
 
-**핵심 단계**:
-1. 증상 정리 - 에러 메시지 나열, 발생 조건 파악
-2. 가설 수립 - 가능한 원인들 나열, 가능성 평가
-3. 코드 추적 - 스택 트레이스에서 파일/라인 추출, 소스 확인
-4. 라이브러리 문서 학습 - Context7 MCP로 관련 문서 조회
-5. 가설 교차 검증 - 문서 기준으로 가설 검증
-6. 근본 원인 확정 - 수정 위치 결정, 영향 범위 평가
+**Key steps**:
+1. Symptom summary - List error messages, identify occurrence conditions
+2. Hypothesis formation - List possible causes, evaluate likelihood
+3. Code tracing - Extract file/line from stack trace, verify source
+4. Library documentation learning - Query related docs via Context7 MCP
+5. Hypothesis cross-validation - Validate hypotheses against documentation
+6. Root cause confirmation - Determine fix location, evaluate impact scope
 
-**결과물**: 분석 리포트 (error_type, root_cause, target_files, fix_direction)
+**Output**: Analysis report (error_type, root_cause, target_files, fix_direction)
 
-**분석 완료 후 사용자 컨펌**:
+**User confirmation after analysis completion**:
 ```
 AskUserQuestion({
   questions: [{
-    question: "위 분석 결과가 정확합니까? 다음 단계(수정 계획 수립)로 진행할까요?",
-    header: "분석 확인",
+    question: "Is the above analysis accurate? Proceed to next step (fix plan creation)?",
+    header: "Analysis Confirm",
     options: [
-      { label: "확인", description: "분석 결과 승인, 계획 수립 진행" },
-      { label: "추가 분석", description: "더 깊은 분석 필요" },
-      { label: "종료", description: "루프 종료" }
+      { label: "Confirm", description: "Approve analysis, proceed to planning" },
+      { label: "More Analysis", description: "Need deeper analysis" },
+      { label: "Terminate", description: "End loop" }
     ],
     multiSelect: false
   }]
@@ -131,99 +131,99 @@ AskUserQuestion({
 
 ---
 
-## PHASE 3: 수정 계획 수립
+## PHASE 3: Fix Plan Creation
 
-> **[필수]** 이 Phase에서는 다음을 반드시 준수해야 합니다:
-> 1. 철저하고 완벽한 계획 수립
-> 2. 계획을 사용자에게 상세히 제시
-> 3. 사용자 승인을 받은 후에만 코드 수정 진행
+> **[Required]** In this Phase, the following must be observed:
+> 1. Create thorough and complete plan
+> 2. Present plan to user in detail
+> 3. Proceed to code modification only after user approval
 >
-> 모든 수정 사항의 영향 범위를 깊이 고려하세요.
-> 부작용과 회귀 버그 가능성을 철저히 검토한 후 계획을 제시하세요.
+> Consider the impact scope of all modifications deeply.
+> Thoroughly review side effects and regression bug possibilities before presenting the plan.
 
-**상세 프로세스**: [references/phase-3-planning.md](references/phase-3-planning.md) 참조
+**Detailed process**: See [references/phase-3-planning.md](references/phase-3-planning.md)
 
-**핵심 단계**:
-1. 수정 범위 정의 - 파일 목록, 우선순위, 의존성
-2. 상세 변경 사항 설계 - 변경 전/후 코드
-3. 리스크 평가 - 부작용, 회귀 버그 가능성
-4. 실행 순서 최적화 - 의존성 기반 순서
-5. 예상 결과 시뮬레이션 - 성공 기준, 실패 대응
+**Key steps**:
+1. Define modification scope - File list, priority, dependencies
+2. Design detailed changes - Before/after code
+3. Risk assessment - Side effects, regression bug possibilities
+4. Optimize execution order - Order based on dependencies
+5. Expected result simulation - Success criteria, failure response
 
-**사용자 컨펌 요청**:
+**User confirmation request**:
 ```
 AskUserQuestion({
   questions: [{
-    question: "위 수정 계획을 승인하시겠습니까?",
-    header: "계획 승인",
+    question: "Do you approve the above fix plan?",
+    header: "Plan Approval",
     options: [
-      { label: "승인", description: "계획대로 수정 진행" },
-      { label: "수정 요청", description: "계획 수정 후 재검토" },
-      { label: "거절", description: "루프 종료" }
+      { label: "Approve", description: "Proceed with modifications as planned" },
+      { label: "Request Changes", description: "Modify plan and review again" },
+      { label: "Reject", description: "End loop" }
     ],
     multiSelect: false
   }]
 })
 ```
 
-**응답 처리**:
-| 응답 | 다음 단계 |
-|------|----------|
-| 승인 | PHASE 4 진행 |
-| 수정 요청 | 피드백 반영 후 PHASE 3 재실행 |
-| 거절 | `"⏸️ 사용자 거절"` 출력 후 종료 |
+**Response handling**:
+| Response | Next Step |
+|----------|-----------|
+| Approve | Proceed to PHASE 4 |
+| Request Changes | Re-execute PHASE 3 with feedback |
+| Reject | Output `"⏸️ User Rejected"` and terminate |
 
 ---
 
-## PHASE 4: 코드 수정
+## PHASE 4: Code Modification
 
-**전제조건**: 사용자가 PHASE 3의 계획을 승인함
+**Prerequisite**: User approved the plan in PHASE 3
 
-**원칙**:
-- 승인된 계획 범위 내에서만 수정
-- 최소 변경 원칙 준수
-- 기존 코드 스타일 유지
+**Principles**:
+- Modify only within approved plan scope
+- Follow minimal change principle
+- Maintain existing code style
 
-**단계**:
-1. 대상 파일 Read
-2. 계획된 순서대로 Edit 적용
-3. 타입 검사 (필요시) `bun run typecheck`
-
----
-
-## PHASE 5: 테스트 검증
-
-**목적**: 수정 사항이 문제를 해결했는지 확인
-
-1. 페이지 새로고침 `browser_navigate`
-2. 페이지 로드 대기 `browser_wait_for({ time: 2 })`
-3. 에러 재확인 `browser_console_messages({ level: "error" })`
-4. 상태 확인 `browser_snapshot`, `browser_take_screenshot`
-
-**PASS 조건** (모두 충족):
-- 기존 에러 해결됨
-- 새로운 에러 없음
-- Goal 조건 충족
-
-**결과 처리**:
-| 결과 | 다음 단계 |
-|------|----------|
-| PASS | `"✅ GOAL 달성"` 출력 후 종료 |
-| FAIL + max 미도달 | 다음 루프 (PHASE 1로) |
-| FAIL + max 도달 | `"⚠️ 최대 시도 도달"` 출력 후 종료 |
+**Steps**:
+1. Read target files
+2. Apply Edits in planned order
+3. Type check (if needed) `bun run typecheck`
 
 ---
 
-## 참조 문서
+## PHASE 5: Test Verification
 
-- [Playwright MCP 도구](references/playwright-tools.md) - 네비게이션, 정보 수집, 상호작용
-- [에러 패턴](references/error-patterns.md) - 일반적인 에러 유형과 해결 방향
+**Purpose**: Verify if modifications resolved the issue
+
+1. Page refresh `browser_navigate`
+2. Wait for page load `browser_wait_for({ time: 2 })`
+3. Recheck errors `browser_console_messages({ level: "error" })`
+4. Check status `browser_snapshot`, `browser_take_screenshot`
+
+**PASS conditions** (all must be met):
+- Previous errors resolved
+- No new errors
+- Goal conditions met
+
+**Result handling**:
+| Result | Next Step |
+|--------|-----------|
+| PASS | Output `"✅ GOAL ACHIEVED"` and terminate |
+| FAIL + max not reached | Next loop (to PHASE 1) |
+| FAIL + max reached | Output `"⚠️ Max Attempts Reached"` and terminate |
 
 ---
 
-## 출력 형식
+## Reference Documents
 
-**루프 시작**:
+- [Playwright MCP Tools](references/playwright-tools.md) - Navigation, information collection, interaction
+- [Error Patterns](references/error-patterns.md) - Common error types and resolution directions
+
+---
+
+## Output Format
+
+**Loop start**:
 ```
 ═══════════════════════════════════════
 RALPH-LOOP #N
@@ -231,30 +231,30 @@ Goal: <goal>
 ═══════════════════════════════════════
 ```
 
-**Phase 진행**:
+**Phase progress**:
 ```
-[1/5] 오류 수집 중...
-[2/5] 원인 심층 분석 중...
-[3/5] 수정 계획 수립 중...
-[4/5] 코드 수정 중...
-[5/5] 테스트 검증 중...
+[1/5] Collecting errors...
+[2/5] Deep cause analysis...
+[3/5] Creating fix plan...
+[4/5] Modifying code...
+[5/5] Test verification...
 ```
 
-**루프 종료**:
+**Loop end**:
 ```
 ───────────────────────────────────────
-결과: PASS/FAIL
-다음: 종료/LOOP #N+1 진행
+Result: PASS/FAIL
+Next: Terminate/Proceed to LOOP #N+1
 ───────────────────────────────────────
 ```
 
 ---
 
-## 종료 코드
+## Exit Codes
 
-| 상황 | 메시지 |
-|------|--------|
-| Goal 달성 | ✅ GOAL 달성 (N회) |
-| 사용자 거절 | ⏸️ 사용자 거절 |
-| Max 도달 | ⚠️ 최대 시도 도달 |
-| 치명적 오류 | ❌ 복구 불가 |
+| Situation | Message |
+|-----------|---------|
+| Goal achieved | ✅ GOAL ACHIEVED (N attempts) |
+| User rejected | ⏸️ User Rejected |
+| Max reached | ⚠️ Max Attempts Reached |
+| Fatal error | ❌ Unrecoverable |

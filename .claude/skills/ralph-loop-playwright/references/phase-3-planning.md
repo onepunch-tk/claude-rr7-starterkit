@@ -1,127 +1,127 @@
-# PHASE 3: 수정 계획 수립
+# PHASE 3: Fix Plan Creation
 
-## 실행 전 필수 지시
+## Pre-execution Required Instructions
 
-> **[중요]** 이 Phase에서는 반드시 다음 절차를 따라야 합니다:
-> 1. 수정 계획을 철저히 수립
-> 2. 계획을 사용자에게 상세히 제시
-> 3. 사용자 승인 후에만 코드 수정 진행
+> **[Important]** In this Phase, the following procedure must be followed:
+> 1. Create a thorough fix plan
+> 2. Present plan to user in detail
+> 3. Proceed with code modification only after user approval
 
-심층 계획 수립 시 검토해야 할 질문들:
-1. 수정이 필요한 모든 파일은 무엇인가?
-2. 각 변경의 잠재적 부작용은 무엇인가?
-3. 최적의 실행 순서는 무엇인가?
-4. 실패 시 롤백 전략은 무엇인가?
-5. 성공을 어떻게 검증할 것인가?
-
----
-
-## 계획 수립 프로세스
-
-### STEP 1: 수정 범위 정의
-
-- 수정이 필요한 모든 파일 목록화
-- 각 파일의 수정 우선순위 결정
-- 파일 간 의존성 순서 파악
-
-### STEP 2: 상세 변경 사항 설계
-
-- 각 파일별 구체적인 코드 변경 내용
-- 변경 전/후 코드 명시
-- 변경이 필요한 정확한 이유
-
-### STEP 3: 리스크 평가
-
-- 각 변경의 잠재적 부작용 검토
-- 회귀 버그 가능성 평가
-- 타입 안전성 검토
-
-### STEP 4: 실행 순서 최적화
-
-- 의존성 기반 실행 순서 결정
-- 롤백 가능한 단계 구분
-- 검증 포인트 설정
-
-### STEP 5: 예상 결과 시뮬레이션
-
-- 수정 후 예상되는 동작
-- 성공 기준 명확화
-- 실패 시 대응 방안
+Questions to review during deep plan creation:
+1. What are all the files that need modification?
+2. What are the potential side effects of each change?
+3. What is the optimal execution order?
+4. What is the rollback strategy if it fails?
+5. How will success be verified?
 
 ---
 
-## 출력 형식
+## Plan Creation Process
+
+### STEP 1: Define Modification Scope
+
+- List all files that need modification
+- Determine priority of each file modification
+- Identify dependency order between files
+
+### STEP 2: Design Detailed Changes
+
+- Specific code changes for each file
+- Specify before/after code
+- Explain exact reason for each change
+
+### STEP 3: Risk Assessment
+
+- Review potential side effects of each change
+- Evaluate regression bug possibilities
+- Review type safety
+
+### STEP 4: Optimize Execution Order
+
+- Determine execution order based on dependencies
+- Identify rollback-capable stages
+- Set verification points
+
+### STEP 5: Simulate Expected Results
+
+- Expected behavior after fix
+- Clarify success criteria
+- Plan response to failures
+
+---
+
+## Output Format
 
 ```
 ═══════════════════════════════════════
-📋 수정 계획 (LOOP #N)
+📋 Fix Plan (LOOP #N)
 ═══════════════════════════════════════
 
-## 문제 요약
+## Problem Summary
 - Goal: <goal>
-- 에러: <error_type>
-- 근본 원인: <root_cause>
-- 영향 범위: <impact_scope>
+- Error: <error_type>
+- Root Cause: <root_cause>
+- Impact Scope: <impact_scope>
 
-## 수정 계획
+## Fix Plan
 
-### Step 1: <작업명>
-- 파일: `<path>`
-- 변경 전:
+### Step 1: <task_name>
+- File: `<path>`
+- Before:
   ```
   <before_code>
   ```
-- 변경 후:
+- After:
   ```
   <after_code>
   ```
-- 이유: <reason>
-- 리스크: <potential_risk>
+- Reason: <reason>
+- Risk: <potential_risk>
 
 ### Step 2: ...
 
-## 실행 순서
-1. <첫 번째로 수정할 파일> (이유: <why_first>)
-2. <두 번째로 수정할 파일> (이유: <why_second>)
+## Execution Order
+1. <first file to modify> (reason: <why_first>)
+2. <second file to modify> (reason: <why_second>)
 ...
 
-## 예상 결과
-- <수정 후 예상 동작>
+## Expected Results
+- <expected behavior after fix>
 
-## 성공 기준
-- [ ] <검증 항목 1>
-- [ ] <검증 항목 2>
+## Success Criteria
+- [ ] <verification item 1>
+- [ ] <verification item 2>
 
-## 리스크 및 대응
-- 리스크: <potential_issue>
-- 대응: <mitigation_plan>
+## Risks and Mitigation
+- Risk: <potential_issue>
+- Mitigation: <mitigation_plan>
 ═══════════════════════════════════════
 ```
 
 ---
 
-## 사용자 컨펌 요청
+## User Confirmation Request
 
-계획 제시 후 반드시 사용자 승인을 받는다:
+After presenting the plan, user approval is required:
 
 ```
 AskUserQuestion({
   questions: [{
-    question: "위 수정 계획을 승인하시겠습니까?",
-    header: "계획 승인",
+    question: "Do you approve the above fix plan?",
+    header: "Plan Approval",
     options: [
-      { label: "승인", description: "계획대로 수정 진행" },
-      { label: "수정 요청", description: "계획 수정 후 재검토" },
-      { label: "거절", description: "루프 종료" }
+      { label: "Approve", description: "Proceed with modifications as planned" },
+      { label: "Request Changes", description: "Modify plan and review again" },
+      { label: "Reject", description: "End loop" }
     ],
     multiSelect: false
   }]
 })
 ```
 
-**응답 처리**:
-| 응답 | 다음 단계 |
-|------|----------|
-| 승인 | PHASE 4 진행 |
-| 수정 요청 | 피드백 반영 후 PHASE 3 재실행 |
-| 거절 | `"⏸️ 사용자 거절"` 출력 후 종료 |
+**Response handling**:
+| Response | Next Step |
+|----------|-----------|
+| Approve | Proceed to PHASE 4 |
+| Request Changes | Re-execute PHASE 3 with feedback |
+| Reject | Output `"⏸️ User Rejected"` and terminate |

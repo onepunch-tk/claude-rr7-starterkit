@@ -1,32 +1,32 @@
 ---
 name: review-report
-description: "코드 리뷰 및 보안 리뷰 결과를 JSON 파일로 저장하는 범용 리포트 스킬. 디렉토리로 리뷰 유형 구분 (reports/code-review/, reports/security-review/). 스크립트 자동 호출로 JSON 파일 생성. code-reviewer, security-reviewer 에이전트가 리뷰 완료 후 사용."
+description: "A universal report skill for saving code review and security review results as JSON files. Differentiates review types by directory (reports/code-review/, reports/security-review/). Generates JSON files via automatic script invocation. Used by code-reviewer and security-reviewer agents after review completion."
 allowed-tools:
   - Read
   - Glob
   - Grep
-  - Bash(python:*)
+  - Bash
 ---
 
 # Review Report
 
-리뷰 결과를 구조화된 JSON 파일로 저장하는 범용 스킬.
+A universal skill for saving review results as structured JSON files.
 
-## 핵심 기능
+## Core Features
 
-1. **JSON 형식 리포트 생성**: 구조화된 이슈 목록 저장
-2. **디렉토리 기반 분류**: 리뷰 유형별 자동 분류
-3. **스크립트 자동 호출**: 토큰 절약을 위한 Python 스크립트 활용
+1. **JSON format report generation**: Saves structured issue lists
+2. **Directory-based classification**: Automatic classification by review type
+3. **Automatic script invocation**: Uses Python script for token efficiency
 
 ---
 
-## 리포트 생성 절차
+## Report Generation Procedure
 
-이 skill을 사용하여 리포트를 생성하려면 다음 단계를 따르세요:
+Follow these steps to generate a report using this skill:
 
-### 1단계: 이슈 데이터 정리
+### Step 1: Organize Issue Data
 
-발견된 이슈들을 JSON 배열로 정리합니다:
+Organize discovered issues as a JSON array:
 
 ```json
 [
@@ -35,111 +35,111 @@ allowed-tools:
     "location": "23:5",
     "severity": "high",
     "category": "type-safety",
-    "problem": "any 타입 사용으로 타입 안전성 위반",
-    "suggestion": "unknown 타입으로 변경 후 Type Guard 적용"
+    "problem": "Type safety violation due to any type usage",
+    "suggestion": "Change to unknown type and apply Type Guard"
   }
 ]
 ```
 
-### 2단계: 스크립트 실행
+### Step 2: Execute Script
 
-Bash 도구로 다음 명령을 실행합니다:
+Execute the following command using the Bash tool:
 
 ```bash
 python .claude/skills/review-report/scripts/generate_report.py \
-  --output <디렉토리> \
-  --issues '<JSON 배열>'
+  --output <directory> \
+  --issues '<JSON array>'
 ```
 
-**출력 디렉토리:**
-- 코드 리뷰: `reports/code-review`
-- 보안 리뷰: `reports/security-review`
+**Output directories:**
+- Code review: `reports/code-review`
+- Security review: `reports/security-review`
 
-**예시 (코드 리뷰):**
+**Example (code review):**
 ```bash
 python .claude/skills/review-report/scripts/generate_report.py \
   --output reports/code-review \
-  --issues '[{"file":"app/components/Button.tsx","location":"15:3","severity":"high","category":"type-safety","problem":"any 타입 사용","suggestion":"unknown 사용 권장"}]'
+  --issues '[{"file":"app/components/Button.tsx","location":"15:3","severity":"high","category":"type-safety","problem":"any type usage","suggestion":"Use unknown instead"}]'
 ```
 
-**이슈가 없는 경우:**
+**If no issues found:**
 ```bash
 python .claude/skills/review-report/scripts/generate_report.py \
   --output reports/code-review \
   --issues '[]'
 ```
 
-### 3단계: 결과 확인
+### Step 3: Verify Results
 
-실행 후 "리포트 생성 완료" 메시지와 파일 경로를 확인합니다.
+After execution, confirm the "Report generated successfully" message and file path.
 
-추가로 파일 생성 여부를 확인합니다:
+Additionally, verify file creation:
 ```bash
 ls -la reports/code-review/*.json | tail -1
 ```
 
 ---
 
-## 이슈 필드 설명
+## Issue Field Description
 
-| 필드 | 필수 | 설명 |
-|------|------|------|
-| file | O | 파일 경로 |
-| location | O | 라인:컬럼 (예: "23:5") |
+| Field | Required | Description |
+|-------|----------|-------------|
+| file | O | File path |
+| location | O | Line:column (e.g., "23:5") |
 | severity | O | critical / high / medium / low |
-| category | O | 이슈 분류 (type-safety, convention, security 등) |
-| problem | O | 문제점 상세 설명 |
-| suggestion | O | 수정 제안 |
-| references | X | 참조한 문서 경로 배열 (선택사항) |
+| category | O | Issue classification (type-safety, convention, security, etc.) |
+| problem | O | Detailed problem description |
+| suggestion | O | Fix suggestion |
+| references | X | Array of referenced document paths (optional) |
 
 ---
 
-## 심각도 기준
+## Severity Criteria
 
-- **critical**: 런타임 에러, 보안 취약점 (즉시 수정 필요)
-- **high**: 타입 안전성, 주요 컨벤션 위반
-- **medium**: 코드 품질, 성능 개선 권장
-- **low**: 스타일, 문서화 권장
-
----
-
-## 리뷰 유형별 카테고리
-
-### 코드 리뷰 (reports/code-review/)
-
-- `type-safety`: 타입 안전성 (any 사용, 제네릭 제약 누락 등)
-- `convention`: 코드 컨벤션 (함수 선언 방식, 네이밍 등)
-- `react19`: React 19 최적화 규칙 (불필요한 메모이제이션 등)
-- `deprecated-api`: 더 이상 사용되지 않는 API
-- `code-quality`: 코드 품질 (중복, 복잡도 등)
-
-### 보안 리뷰 (reports/security-review/)
-
-- `injection`: 인젝션 취약점 (SQL, XSS, Command 등)
-- `access-control`: 접근 제어 문제
-- `auth-failure`: 인증/세션 관리 문제
-- `crypto-failure`: 암호화 관련 문제
-- `security-misconfig`: 보안 설정 오류
+- **critical**: Runtime errors, security vulnerabilities (immediate fix required)
+- **high**: Type safety, major convention violations
+- **medium**: Code quality, performance improvement recommendations
+- **low**: Style, documentation recommendations
 
 ---
 
-## 파일명 규칙
+## Categories by Review Type
 
-`{8자리_랜덤해시}_{YYYYMMDD}.json`
+### Code Review (reports/code-review/)
 
-예: `a1b2c3d4_20260119.json`
+- `type-safety`: Type safety (any usage, missing generic constraints, etc.)
+- `convention`: Code conventions (function declaration style, naming, etc.)
+- `react19`: React 19 optimization rules (unnecessary memoization, etc.)
+- `deprecated-api`: Deprecated APIs
+- `code-quality`: Code quality (duplication, complexity, etc.)
+
+### Security Review (reports/security-review/)
+
+- `injection`: Injection vulnerabilities (SQL, XSS, Command, etc.)
+- `access-control`: Access control issues
+- `auth-failure`: Authentication/session management issues
+- `crypto-failure`: Cryptography-related issues
+- `security-misconfig`: Security configuration errors
 
 ---
 
-## JSON 이스케이프 주의사항
+## Filename Convention
 
-- 작은따옴표(')가 JSON 내부에 있으면 `'\''`로 이스케이프
-- 큰따옴표(")는 JSON 표준이므로 그대로 사용
-- 한글 문자열은 그대로 사용 가능
+`{8-char_random_hash}_{YYYYMMDD}.json`
+
+Example: `a1b2c3d4_20260119.json`
 
 ---
 
-## 참고 자료
+## JSON Escape Notes
 
-- JSON 스키마 상세: `references/json-schema.md`
-- 보안 리뷰 참조: `.claude/skills/owasp-top10-2025/references/`
+- Single quotes (') inside JSON should be escaped as `'\''`
+- Double quotes (") are JSON standard, use as-is
+- Korean characters can be used directly
+
+---
+
+## References
+
+- JSON schema details: `references/json-schema.md`
+- Security review reference: `.claude/skills/owasp-top10-2025/references/`

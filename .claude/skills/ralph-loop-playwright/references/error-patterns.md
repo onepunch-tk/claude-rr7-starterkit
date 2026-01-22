@@ -1,47 +1,47 @@
-# 에러 패턴 레퍼런스
+# Error Pattern Reference
 
-## 일반적인 JavaScript 에러
+## Common JavaScript Errors
 
-| 패턴 | 원인 | 해결 방향 |
-|------|------|----------|
-| `Cannot read property 'X' of undefined` | null/undefined 참조 | 옵셔널 체이닝 (`?.`) 사용 |
-| `Cannot read property 'X' of null` | null 참조 | null 체크 또는 옵셔널 체이닝 |
-| `X is not a function` | 함수가 아닌 값 호출 | 타입 확인, import 확인 |
-| `X is not defined` | 변수/함수 미정의 | import 누락, 스코프 확인 |
-| `Unexpected token` | 구문 오류 | JSON 파싱 오류 또는 문법 오류 |
+| Pattern | Cause | Resolution Direction |
+|---------|-------|---------------------|
+| `Cannot read property 'X' of undefined` | null/undefined reference | Use optional chaining (`?.`) |
+| `Cannot read property 'X' of null` | null reference | Add null check or optional chaining |
+| `X is not a function` | Calling non-function value | Check type, verify import |
+| `X is not defined` | Variable/function not defined | Missing import, check scope |
+| `Unexpected token` | Syntax error | JSON parsing error or syntax error |
 
-## 네트워크 에러
+## Network Errors
 
-| 패턴 | 원인 | 해결 방향 |
-|------|------|----------|
-| `Failed to fetch` | API 호출 실패 | 서버 상태, CORS, URL 확인 |
-| `NetworkError` | 네트워크 연결 문제 | 서버 상태, 프록시 확인 |
-| `401 Unauthorized` | 인증 실패 | 토큰 로직, 세션 확인 |
-| `403 Forbidden` | 권한 없음 | 사용자 권한, API 키 확인 |
-| `404 Not Found` | 리소스 없음 | URL 경로, 라우트 확인 |
-| `500 Internal Server Error` | 서버 에러 | 서버 로그 확인 |
+| Pattern | Cause | Resolution Direction |
+|---------|-------|---------------------|
+| `Failed to fetch` | API call failure | Check server status, CORS, URL |
+| `NetworkError` | Network connection issue | Check server status, proxy |
+| `401 Unauthorized` | Authentication failure | Check token logic, session |
+| `403 Forbidden` | No permission | Check user permissions, API key |
+| `404 Not Found` | Resource not found | Check URL path, routes |
+| `500 Internal Server Error` | Server error | Check server logs |
 
-## React 에러
+## React Errors
 
-| 패턴 | 원인 | 해결 방향 |
-|------|------|----------|
-| `Invalid hook call` | 훅 규칙 위반 | 컴포넌트 최상위에서만 호출 |
-| `Objects are not valid as a React child` | 객체를 직접 렌더링 | JSON.stringify 또는 속성 접근 |
-| `Each child should have a unique "key" prop` | key 누락 | 리스트 아이템에 key 추가 |
-| `Maximum update depth exceeded` | 무한 렌더링 루프 | useEffect 의존성 배열 확인 |
+| Pattern | Cause | Resolution Direction |
+|---------|-------|---------------------|
+| `Invalid hook call` | Hook rules violation | Call only at component top level |
+| `Objects are not valid as a React child` | Rendering object directly | Use JSON.stringify or access properties |
+| `Each child should have a unique "key" prop` | Missing key | Add key to list items |
+| `Maximum update depth exceeded` | Infinite render loop | Check useEffect dependency array |
 
-## TypeScript 에러
+## TypeScript Errors
 
-| 패턴 | 원인 | 해결 방향 |
-|------|------|----------|
-| `Type 'X' is not assignable to type 'Y'` | 타입 불일치 | 타입 정의 수정 또는 타입 캐스팅 |
-| `Property 'X' does not exist on type 'Y'` | 속성 미존재 | 인터페이스 확장 또는 타입 가드 |
-| `Argument of type 'X' is not assignable` | 인자 타입 불일치 | 함수 시그니처 확인 |
+| Pattern | Cause | Resolution Direction |
+|---------|-------|---------------------|
+| `Type 'X' is not assignable to type 'Y'` | Type mismatch | Fix type definition or cast type |
+| `Property 'X' does not exist on type 'Y'` | Property doesn't exist | Extend interface or use type guard |
+| `Argument of type 'X' is not assignable` | Argument type mismatch | Check function signature |
 
-## 브라우저 에러
+## Browser Errors
 
-| 패턴 | 원인 | 해결 방향 |
-|------|------|----------|
-| `CORS policy` | CORS 정책 위반 | 서버 CORS 설정, 프록시 사용 |
-| `Mixed Content` | HTTPS에서 HTTP 리소스 로드 | URL을 HTTPS로 변경 |
-| `Content Security Policy` | CSP 위반 | CSP 헤더 수정 |
+| Pattern | Cause | Resolution Direction |
+|---------|-------|---------------------|
+| `CORS policy` | CORS policy violation | Configure server CORS, use proxy |
+| `Mixed Content` | Loading HTTP resource on HTTPS | Change URL to HTTPS |
+| `Content Security Policy` | CSP violation | Modify CSP header |

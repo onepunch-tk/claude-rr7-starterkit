@@ -1,118 +1,118 @@
-# PHASE 2: 원인 심층 분석
+# PHASE 2: Deep Cause Analysis
 
-## 실행 전 필수 지시
+## Pre-execution Required Instructions
 
-> **[중요]** 이 Phase에서는 반드시 다음 절차를 따라야 합니다:
-> 1. 모든 가능성을 체계적으로 검토
-> 2. 분석 결과를 사용자에게 명확히 제시
-> 3. 사용자 확인 후 다음 단계 진행
+> **[Important]** In this Phase, the following procedure must be followed:
+> 1. Systematically review all possibilities
+> 2. Clearly present analysis results to the user
+> 3. Proceed to next step after user confirmation
 
-심층 분석 시 검토해야 할 질문들:
-1. 수집된 에러들의 패턴은 무엇인가?
-2. 가능한 모든 원인 가설은 무엇인가?
-3. 각 가설의 가능성은 어느 정도인가?
-4. 코드 추적 결과 실제 원인은 무엇인가?
-5. 라이브러리 문서와 가설이 일치하는가?
+Questions to review during deep analysis:
+1. What are the patterns of collected errors?
+2. What are all possible cause hypotheses?
+3. What is the likelihood of each hypothesis?
+4. What is the actual cause based on code tracing?
+5. Does the hypothesis match the library documentation?
 
 ---
 
-## 분석 프로세스
+## Analysis Process
 
-### STEP 1: 증상 정리
+### STEP 1: Symptom Summary
 
-- 수집된 모든 에러 메시지 나열
-- 에러 발생 시점과 조건 파악
-- 에러 간 연관성 분석
+- List all collected error messages
+- Identify timing and conditions of error occurrence
+- Analyze correlations between errors
 
-### STEP 2: 가설 수립
+### STEP 2: Hypothesis Formation
 
-- 가능한 원인들을 모두 나열
-- 각 가설의 가능성 평가 (높음/중간/낮음)
-- 가장 유력한 가설 선정
+- List all possible causes
+- Evaluate likelihood of each hypothesis (high/medium/low)
+- Select the most probable hypothesis
 
-### STEP 3: 코드 추적
+### STEP 3: Code Tracing
 
-- 에러 스택 트레이스에서 파일 경로, 라인 번호 추출
-- 해당 소스 코드를 Read 도구로 확인
-- 호출 체인 역추적 (caller → callee)
-- 관련 import/export, 의존성 확인
+- Extract file paths, line numbers from error stack trace
+- Verify source code using Read tool
+- Trace call chain (caller → callee)
+- Check related imports/exports, dependencies
 
-### STEP 3.5: 라이브러리 문서 학습
+### STEP 3.5: Library Documentation Learning
 
-Context7 MCP를 사용하여 라이브러리 문서 조회:
+Use Context7 MCP to query library documentation:
 
 ```
-// 1. 라이브러리 ID 확인
+// 1. Confirm library ID
 mcp__context7__resolve-library-id({
-  libraryName: "<라이브러리명>",
-  query: "<에러와 관련된 검색 쿼리>"
+  libraryName: "<library name>",
+  query: "<search query related to error>"
 })
 
-// 2. 관련 문서 학습
+// 2. Learn related documentation
 mcp__context7__query-docs({
-  libraryId: "<확인된 라이브러리 ID>",
-  query: "<에러 해결에 필요한 구체적 질문>"
+  libraryId: "<confirmed library ID>",
+  query: "<specific question for error resolution>"
 })
 ```
 
-확인 사항:
-- 에러와 관련된 API 사용법, 베스트 프랙티스
-- 라이브러리 버전 호환성 및 breaking changes
+Items to verify:
+- API usage and best practices related to the error
+- Library version compatibility and breaking changes
 
-### STEP 3.7: 가설 교차 검증
+### STEP 3.7: Hypothesis Cross-validation
 
-STEP 2의 가설과 STEP 3.5에서 학습한 라이브러리 문서 비교:
+Compare STEP 2 hypotheses with documentation learned in STEP 3.5:
 
-| 검증 결과 | 가설 상태 | 다음 행동 |
-|----------|----------|----------|
-| 문서와 일치 | confirmed | 신뢰도 상향, STEP 4 진행 |
-| 문서와 불일치 | revised | 가설 수정 후 재검증 |
-| 문서에서 명시적 금지 | rejected | 가설 기각, 새 가설 수립 |
+| Validation Result | Hypothesis Status | Next Action |
+|-------------------|-------------------|-------------|
+| Matches documentation | confirmed | Increase confidence, proceed to STEP 4 |
+| Contradicts documentation | revised | Revise hypothesis and re-validate |
+| Explicitly prohibited in documentation | rejected | Reject hypothesis, form new one |
 
-추가 확인:
-- 문서에서 권장하는 패턴과 현재 코드 패턴 비교
-- Deprecated API 사용 여부 확인
+Additional checks:
+- Compare recommended patterns in documentation with current code patterns
+- Check for deprecated API usage
 
-### STEP 4: 근본 원인 확정
+### STEP 4: Confirm Root Cause
 
-- 직접 원인 vs 간접 원인 구분
-- 수정해야 할 정확한 위치 결정
-- 수정 시 영향 범위 평가
+- Distinguish direct cause vs indirect cause
+- Determine exact location to fix
+- Evaluate impact scope of fix
 
-### STEP 5: 대안 검토
+### STEP 5: Review Alternatives
 
-- 가능한 해결 방법들 나열
-- 각 방법의 장단점 비교
-- 최적의 수정 방향 선택
+- List possible solutions
+- Compare pros and cons of each method
+- Select optimal fix direction
 
 ---
 
-## 결과물 형식
+## Output Format
 
 ```yaml
 analysis:
   error_type: "<TypeError|NetworkError|...>"
   symptoms:
-    - "<증상 1>"
-    - "<증상 2>"
+    - "<symptom 1>"
+    - "<symptom 2>"
   hypotheses:
-    - hypothesis: "<가설 1>"
+    - hypothesis: "<hypothesis 1>"
       likelihood: high|medium|low
-    - hypothesis: "<가설 2>"
+    - hypothesis: "<hypothesis 2>"
       likelihood: high|medium|low
-  root_cause: "<확정된 근본 원인>"
+  root_cause: "<confirmed root cause>"
   target_files:
-    - path: "<파일>"
-      line: <라인>
-      reason: "<이 파일을 수정해야 하는 이유>"
-  impact_scope: "<수정 시 영향 범위>"
-  fix_direction: "<선택된 수정 방향>"
+    - path: "<file>"
+      line: <line>
+      reason: "<reason why this file needs modification>"
+  impact_scope: "<scope affected by fix>"
+  fix_direction: "<selected fix direction>"
   alternatives_considered:
-    - "<검토했지만 선택하지 않은 대안>"
+    - "<alternatives reviewed but not selected>"
   libraries_referenced:
-    - name: "<라이브러리명>"
-      version: "<버전>"
-      docs_consulted: "<참조한 문서 섹션>"
-      key_findings: "<문서에서 발견한 핵심 정보>"
+    - name: "<library name>"
+      version: "<version>"
+      docs_consulted: "<documentation section referenced>"
+      key_findings: "<key information found in documentation>"
       validation_result: "confirmed|revised|rejected"
 ```

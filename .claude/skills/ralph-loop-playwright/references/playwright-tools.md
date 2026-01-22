@@ -1,22 +1,22 @@
-# Playwright MCP 도구 레퍼런스
+# Playwright MCP Tools Reference
 
-## 네비게이션
-
-```
-browser_navigate({ url: "<url>" })        // URL 이동
-browser_navigate_back({})                  // 뒤로 가기
-```
-
-## 정보 수집
+## Navigation
 
 ```
-browser_snapshot({})                       // 접근성 트리 (ref 획득 필수)
-browser_console_messages({ level: "error" })  // 콘솔 로그
-browser_take_screenshot({ fullPage: true })   // 스크린샷
-browser_network_requests({})               // 네트워크 요청
+browser_navigate({ url: "<url>" })        // Navigate to URL
+browser_navigate_back({})                  // Go back
 ```
 
-### browser_snapshot 응답 예시
+## Information Collection
+
+```
+browser_snapshot({})                       // Accessibility tree (required to get refs)
+browser_console_messages({ level: "error" })  // Console logs
+browser_take_screenshot({ fullPage: true })   // Screenshot
+browser_network_requests({})               // Network requests
+```
+
+### browser_snapshot Response Example
 
 ```
 - form [ref=e1]:
@@ -25,51 +25,51 @@ browser_network_requests({})               // 네트워크 요청
   - button "Login" [ref=e4]
 ```
 
-## 상호작용
+## Interaction
 
 ```
-browser_click({ element: "설명", ref: "<ref>" })
-browser_type({ element: "설명", ref: "<ref>", text: "<텍스트>" })
-browser_type({ element: "설명", ref: "<ref>", text: "<텍스트>", submit: true })  // Enter 포함
-browser_select_option({ element: "설명", ref: "<ref>", values: ["<값>"] })
-browser_hover({ element: "설명", ref: "<ref>" })
+browser_click({ element: "description", ref: "<ref>" })
+browser_type({ element: "description", ref: "<ref>", text: "<text>" })
+browser_type({ element: "description", ref: "<ref>", text: "<text>", submit: true })  // Include Enter
+browser_select_option({ element: "description", ref: "<ref>", values: ["<value>"] })
+browser_hover({ element: "description", ref: "<ref>" })
 browser_press_key({ key: "Enter" })
 browser_press_key({ key: "Escape" })
 ```
 
-## 대기
+## Waiting
 
 ```
-browser_wait_for({ text: "<텍스트>" })        // 텍스트 출현 대기
-browser_wait_for({ textGone: "<텍스트>" })    // 텍스트 사라짐 대기
-browser_wait_for({ time: <초> })              // 시간 대기
+browser_wait_for({ text: "<text>" })        // Wait for text to appear
+browser_wait_for({ textGone: "<text>" })    // Wait for text to disappear
+browser_wait_for({ time: <seconds> })       // Wait for time
 ```
 
-## 탭 관리
+## Tab Management
 
 ```
-browser_tabs({ action: "list" })              // 탭 목록
-browser_tabs({ action: "new" })               // 새 탭
-browser_tabs({ action: "select", index: N })  // 탭 전환
-browser_tabs({ action: "close", index: N })   // 탭 닫기
+browser_tabs({ action: "list" })              // Tab list
+browser_tabs({ action: "new" })               // New tab
+browser_tabs({ action: "select", index: N })  // Switch tab
+browser_tabs({ action: "close", index: N })   // Close tab
 ```
 
-## 폼 일괄 입력
+## Batch Form Input
 
 ```
 browser_fill_form({
   fields: [
-    { name: "Email", type: "textbox", ref: "<ref>", value: "<값>" },
-    { name: "Password", type: "textbox", ref: "<ref>", value: "<값>" }
+    { name: "Email", type: "textbox", ref: "<ref>", value: "<value>" },
+    { name: "Password", type: "textbox", ref: "<ref>", value: "<value>" }
   ]
 })
 ```
 
-## 자주 사용하는 필드 패턴
+## Common Field Patterns
 
-| 유형 | 스냅샷 패턴 |
-|------|------------|
-| 이메일 | `textbox "Email"`, `textbox "이메일"` |
-| 비밀번호 | `textbox "Password"`, `textbox "비밀번호"` |
-| 로그인 버튼 | `button "Login"`, `button "Sign in"`, `button "로그인"` |
-| 에러 메시지 | `alert "..."`, `text "Invalid..."` |
+| Type | Snapshot Pattern |
+|------|------------------|
+| Email | `textbox "Email"` |
+| Password | `textbox "Password"` |
+| Login Button | `button "Login"`, `button "Sign in"` |
+| Error Message | `alert "..."`, `text "Invalid..."` |

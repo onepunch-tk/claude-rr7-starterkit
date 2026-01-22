@@ -1,30 +1,30 @@
 # Git Sync
 
-변경사항을 스테이징, Conventional Commits 형식으로 커밋, push까지 한 번에 처리한다.
+Stage changes, commit in Conventional Commits format, and push all at once.
 
-## 파라미터
+## Parameters
 
-`$ARGUMENTS`: 선택적 커밋 메시지. 제공 시 해당 메시지 사용, 미제공 시 자동 생성.
+`$ARGUMENTS`: Optional commit message. Uses provided message if given, auto-generates if not.
 
-## 워크플로우
+## Workflow
 
 ```
-[1] 변경사항 수집 및 분석
+[1] Collect and analyze changes
        ↓
-[2] 커밋 메시지 결정 (commit.md 참조)
+[2] Determine commit message (see commit.md)
        ↓
 [3] git add .
        ↓
 [4] git commit -m "<emoji> <type>: ..."
        ↓
-[5] git push origin <현재브랜치>
+[5] git push origin <current-branch>
        ↓
-[6] 완료 보고
+[6] Completion report
 ```
 
-## 단계별 상세
+## Step-by-Step Details
 
-### 1. 변경사항 수집
+### 1. Collect Changes
 
 ```bash
 git status
@@ -33,96 +33,96 @@ git diff
 git branch --show-current
 ```
 
-### 2. 커밋 메시지 결정
+### 2. Determine Commit Message
 
-[commit.md](commit.md)의 메시지 생성 규칙 적용:
-- $ARGUMENTS 존재 시 → 해당 메시지 사용
-- $ARGUMENTS 미존재 시 → 변경사항 기반 자동 생성
-- 타입 & 이모지 추론: [commit-prefix-rules.md](commit-prefix-rules.md) 참조
+Apply message generation rules from [commit.md](commit.md):
+- If $ARGUMENTS provided → Use that message
+- If $ARGUMENTS not provided → Auto-generate based on changes
+- Type & emoji inference: See [commit-prefix-rules.md](commit-prefix-rules.md)
 
-### 3. 스테이징 및 커밋
+### 3. Stage and Commit
 
 ```bash
 git add .
-git commit -m "<emoji> <type>: 메시지 제목
+git commit -m "<emoji> <type>: message subject
 
-- 상세 변경 내용 1
-- 상세 변경 내용 2"
+- detailed change 1
+- detailed change 2"
 ```
 
 ### 4. Push
 
 ```bash
-git push origin <현재브랜치>
+git push origin <current-branch>
 ```
 
-## 출력 형식
+## Output Format
 
 ```
 ═══════════════════════════════════════
-🔄 Git Sync 시작
+🔄 Git Sync Started
 ═══════════════════════════════════════
 
-[1/4] 변경사항 분석 중...
-      변경된 파일: N개
+[1/4] Analyzing changes...
+      Changed files: N
 
-[2/4] 커밋 메시지 생성...
-      타입: feat
-      이모지: ✨
-      제목: 새 기능 추가
+[2/4] Generating commit message...
+      Type: feat
+      Emoji: ✨
+      Subject: Add new feature
 
-[3/4] 커밋 중...
-      ✅ 커밋 완료
+[3/4] Committing...
+      ✅ Commit complete
 
-[4/4] Push 중...
-      브랜치: main
-      ✅ Push 완료
+[4/4] Pushing...
+      Branch: main
+      ✅ Push complete
 
 ───────────────────────────────────────
-✅ Git Sync 완료
+✅ Git Sync Complete
 ───────────────────────────────────────
 ```
 
-## 예시
+## Examples
 
-### 인자 제공 시
+### When Arguments Provided
 
-입력:
+Input:
 ```
-로그인 기능 구현
-```
-
-결과:
-```
-✨ feat: 로그인 기능 구현
-
-- 로그인 폼 컴포넌트 추가
-- 인증 API 연동
+Implement login feature
 ```
 
-### Scope 포함 예시
-
-입력:
+Result:
 ```
-인증 모듈 토큰 갱신 기능
-```
+✨ feat: Implement login feature
 
-결과:
-```
-✨ feat(auth): 인증 모듈 토큰 갱신 기능
-
-- 액세스 토큰 자동 갱신 구현
-- 리프레시 토큰 처리 로직 추가
+- Add login form component
+- Connect authentication API
 ```
 
-### 인자 미제공 시
+### Example with Scope
 
-변경 파일 분석 후 자동 메시지 생성.
+Input:
+```
+Auth module token refresh feature
+```
 
-## 주의사항
+Result:
+```
+✨ feat(auth): Auth module token refresh feature
 
-- 변경사항이 없으면 중단
-- 커밋 후 push 실패 시 에러 보고
-- 민감한 파일 포함 시 경고
-- force push는 수행하지 않음
-- `Co-Authored-By` 패턴 절대 추가 금지
+- Implement automatic access token refresh
+- Add refresh token handling logic
+```
+
+### When Arguments Not Provided
+
+Auto-generates message after analyzing changed files.
+
+## Cautions
+
+- Stop if no changes exist
+- Report error if push fails after commit
+- Warn if sensitive files are included
+- Never perform force push
+- Never add `Co-Authored-By` pattern
