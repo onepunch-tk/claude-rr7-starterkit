@@ -23,10 +23,4 @@ export interface IContainer {
 	 * OAuth 콜백 등 Better-auth가 처리하는 엔드포인트 위임
 	 */
 	betterAuthHandler: (request: Request) => Promise<Response>;
-
-	/**
-	 * 세션 쿠키 클리어 헤더 생성
-	 * 로그아웃 시 클라이언트 쿠키 삭제용
-	 */
-	createClearSessionHeaders: () => Headers;
 }

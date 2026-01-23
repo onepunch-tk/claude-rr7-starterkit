@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import type { Route } from "./+types/$";
 
 /**
  * Better-auth API 핸들러 (Catch-all)
@@ -18,10 +18,10 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
  * - 기타 모든 Better-auth 엔드포인트
  */
 
-export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context }: Route.LoaderArgs) => {
 	return context.container.betterAuthHandler(request);
 };
 
-export const action = async ({ request, context }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: Route.ActionArgs) => {
 	return context.container.betterAuthHandler(request);
 };

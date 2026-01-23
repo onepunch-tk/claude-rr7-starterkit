@@ -67,19 +67,3 @@ export interface PasswordStrength {
 	colorClass: string;
 }
 
-/**
- * OAuth 프로바이더 타입
- */
-export type OAuthProvider = "github" | "google" | "kakao";
-
-/**
- * 세션 정보 타입
- */
-export interface SessionInfo {
-	id: string;
-	userId: string;
-	token: string;
-	expiresAt: Date;
-	ipAddress?: string;
-	userAgent?: string;
-}

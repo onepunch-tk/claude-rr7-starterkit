@@ -1,8 +1,8 @@
+import type { AppEnv } from "adapters/shared/env";
 import { createAuthService } from "~/application/auth/auth.service";
 import type { IContainer } from "~/application/shared/container.types";
 import { createUserService } from "~/application/user/user.service";
 import { createBetterAuth } from "~/infrastructure/external/better-auth/auth.config";
-import { createClearSessionHeaders } from "~/infrastructure/external/better-auth/auth.const";
 import { createAuthProviderImpl } from "~/infrastructure/external/better-auth/auth.provider.impl";
 import { createEmailServiceImpl } from "~/infrastructure/external/resend/email.service.impl";
 import { createDrizzleClient } from "~/infrastructure/persistence/drizzle/drizzle.server";
@@ -10,7 +10,6 @@ import {
 	createProfileRepositoryImpl,
 	createUserRepositoryImpl,
 } from "~/infrastructure/persistence/drizzle/user.repository.impl";
-import type { AppEnv } from "./env";
 
 /**
  * DI Container 생성
@@ -76,14 +75,5 @@ export const createContainer = (env: AppEnv): IContainer => {
 		userService,
 		emailService,
 		betterAuthHandler: (request: Request) => betterAuth.handler(request),
-		createClearSessionHeaders,
 	};
 };
-
-/**
- * CLI/스크립트용 정적 컨테이너 생성
- *
- * 환경 변수를 직접 받아 컨테이너를 생성합니다.
- * Cloudflare Workers 외부에서 사용됩니다.
- */
-export const createContainerFromEnv = createContainer;

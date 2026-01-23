@@ -1,4 +1,3 @@
-import type { ActionFunctionArgs } from "react-router";
 import {
 	Form,
 	Link,
@@ -37,7 +36,7 @@ export const meta: Route.MetaFunction = () => [
 export const action = async ({
 	request,
 	context,
-}: ActionFunctionArgs): Promise<AuthActionResponse | Response> => {
+}: Route.ActionArgs): Promise<AuthActionResponse | Response> => {
 	if (request.method !== "POST") {
 		return { error: "POST 요청만 허용됩니다." };
 	}

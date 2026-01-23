@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import type { IProfileRepository } from "~/application/user/user.port";
 import type { DrizzleClient } from "~/infrastructure/persistence/drizzle/drizzle.server";
 import * as schema from "~/infrastructure/persistence/schema";
-import { COOKIE_PREFIX } from "./auth.const";
+import { COOKIE_PREFIX } from "../../../application/auth/auth.const";
 
 /**
  * Better-auth 환경 설정 타입
@@ -109,7 +109,8 @@ export const createBetterAuth = (
 		account: {
 			accountLinking: {
 				enabled: true,
-				trustedProviders: ["github", "google", "kakao"],
+				// kakao는 아직 socialProviders에 구현되지 않았으므로 제외
+				trustedProviders: ["github", "google"],
 			},
 		},
 

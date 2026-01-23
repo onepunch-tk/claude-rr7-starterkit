@@ -14,30 +14,3 @@ export interface BaseEntity {
 	createdAt: Date;
 	updatedAt: Date;
 }
-
-/**
- * Result 타입 (함수형 에러 처리)
- *
- * 성공/실패를 명시적으로 표현하는 Result 패턴
- */
-export type Result<T, E extends Error = Error> =
-	| { success: true; data: T }
-	| { success: false; error: E };
-
-/**
- * Pagination 타입
- *
- * 페이지네이션 관련 타입 정의
- */
-export interface PaginationParams {
-	page: number;
-	limit: number;
-}
-
-export interface PaginatedResult<T> {
-	items: T[];
-	total: number;
-	page: number;
-	limit: number;
-	totalPages: number;
-}

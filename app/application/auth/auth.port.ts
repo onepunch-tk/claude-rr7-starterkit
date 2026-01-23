@@ -1,18 +1,6 @@
 import type { IUser } from "~/domain/user";
 
 /**
- * 인증 결과 타입
- */
-export interface AuthResult {
-	user: IUser;
-	session: {
-		id: string;
-		token: string;
-		expiresAt: Date;
-	};
-}
-
-/**
  * 로그인 결과 타입
  */
 export interface SignInResult {
@@ -20,10 +8,18 @@ export interface SignInResult {
 }
 
 /**
+ * 회원가입 결과의 사용자 정보 타입
+ *
+ * 회원가입 직후에는 id를 알 수 없으므로 (이메일 인증 필요)
+ * id 필드를 제외한 타입을 사용합니다.
+ */
+export type SignUpUser = Omit<IUser, "id"> & { id?: string };
+
+/**
  * 회원가입 결과 타입
  */
 export interface SignUpResult {
-	user: IUser;
+	user: SignUpUser;
 }
 
 /**

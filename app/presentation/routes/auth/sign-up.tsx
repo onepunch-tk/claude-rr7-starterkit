@@ -1,13 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import type { ActionFunctionArgs } from "react-router";
-import {
-	Form,
-	Link,
-	redirect,
-	useActionData,
-	useOutletContext,
-} from "react-router";
+import { Form, Link, useActionData, useOutletContext } from "react-router";
 import {
 	type AuthActionResponse,
 	AuthError,
@@ -48,7 +41,7 @@ export const meta: Route.MetaFunction = () => [
 export const action = async ({
 	request,
 	context,
-}: ActionFunctionArgs): Promise<AuthActionResponse | Response> => {
+}: Route.ActionArgs): Promise<AuthActionResponse | Response> => {
 	if (request.method !== "POST") {
 		return { error: "POST 요청만 허용됩니다." };
 	}

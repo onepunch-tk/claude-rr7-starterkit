@@ -1,23 +1,12 @@
 import { sql } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import {
-	account,
-	accountRelations,
-	session,
-	sessionRelations,
-	user,
-	userRelations,
-	verification,
-} from "./auth.schema";
+import { account, session, user, verification } from "./auth.schema";
 
 export {
 	user as userTable,
 	session as sessionTable,
 	account as accountTable,
 	verification as verificationTable,
-	userRelations,
-	sessionRelations,
-	accountRelations,
 };
 
 /**
@@ -61,18 +50,13 @@ export const profilesTable = pgTable("profiles", {
 		.notNull(),
 });
 
-export type User = typeof user.$inferSelect;
-export type NewUser = typeof user.$inferInsert;
+// 스키마에서 추론되는 타입들
+// 향후 필요 시 주석 해제하여 사용
+// export type User = typeof user.$inferSelect;
+// export type NewUser = typeof user.$inferInsert;
 
-export type Session = typeof session.$inferSelect;
-export type NewSession = typeof session.$inferInsert;
-
-export type Account = typeof account.$inferSelect;
-export type NewAccount = typeof account.$inferInsert;
-
-export type Verification = typeof verification.$inferSelect;
-export type NewVerification = typeof verification.$inferInsert;
-
+// TwoFactor 테이블은 2FA 기능 구현 시 사용 예정
+// TODO: 2FA 기능 구현 시 타입 export 활성화
 export type TwoFactor = typeof twoFactorTable.$inferSelect;
 export type NewTwoFactor = typeof twoFactorTable.$inferInsert;
 

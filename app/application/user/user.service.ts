@@ -1,5 +1,5 @@
 import type { IUser, IUserWithProfile, UpdateProfileDTO } from "~/domain/user";
-import { ProfileNotFoundError, UserNotFoundError } from "~/domain/user";
+import { UserNotFoundError } from "~/domain/user";
 import type { IProfileRepository, IUserRepository } from "./user.port";
 
 /**

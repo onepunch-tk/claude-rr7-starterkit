@@ -1,9 +1,10 @@
 /**
- * 인증 관련 기본 에러 클래스
+ * 인증 관련 기본 에러 추상 클래스
  *
  * 모든 인증 관련 에러의 기본 클래스입니다.
+ * 직접 인스턴스화하지 않고 반드시 상속하여 사용해야 합니다.
  */
-export class AuthError extends Error {
+export abstract class AuthError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = "AuthError";
@@ -55,30 +56,6 @@ export class EmailNotVerifiedError extends AuthError {
 	constructor(message = "이메일 인증이 완료되지 않았습니다.") {
 		super(message);
 		this.name = "EmailNotVerifiedError";
-	}
-}
-
-/**
- * 세션 만료 에러
- *
- * 세션이 만료되었을 때 발생합니다.
- */
-export class SessionExpiredError extends AuthError {
-	constructor(message = "세션이 만료되었습니다. 다시 로그인해주세요.") {
-		super(message);
-		this.name = "SessionExpiredError";
-	}
-}
-
-/**
- * 토큰 유효하지 않음 에러
- *
- * 비밀번호 재설정 등에서 토큰이 유효하지 않을 때 발생합니다.
- */
-export class InvalidTokenError extends AuthError {
-	constructor(message = "유효하지 않거나 만료된 토큰입니다.") {
-		super(message);
-		this.name = "InvalidTokenError";
 	}
 }
 

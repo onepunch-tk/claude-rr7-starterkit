@@ -1,6 +1,6 @@
 import type { IContainer } from "~/application/shared/container.types";
-import type { CloudflareContext, Platform } from "./context.interface";
-import type { AppEnv } from "./env.interface";
+import type { CloudflareContext, Platform } from "./context";
+import type { AppEnv } from "./env";
 
 /**
  * React Router의 AppLoadContext 타입 확장
@@ -20,10 +20,7 @@ declare module "react-router" {
 		container: IContainer;
 
 		/** Cloudflare 전용 컨텍스트 (Node.js에서는 undefined) */
-		cloudflare?: {
-			env: Env;
-			ctx: ExecutionContext;
-		};
+		cloudflare?: CloudflareContext;
 	}
 }
 

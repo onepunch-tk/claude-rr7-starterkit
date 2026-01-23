@@ -1,47 +1,19 @@
-import type { AppEnv } from "adapters/shared/env.interface";
-import { validateRequiredEnv } from "adapters/shared/env.interface";
+import type { AppEnv } from "adapters/shared/env";
+import { parseEnv } from "adapters/shared/env";
 
 /**
  * Cloudflare 환경 변수에서 AppEnv 추출
  *
  * Cloudflare Workers의 Env 객체에서 필요한 환경 변수를 추출합니다.
  *
- * @param cloudflareEnv - Cloudflare Workers Env 객체
+ * @param cloudflareEnv - Cloudflare Workers Env 객체 (worker-configuration.d.ts의 Env 타입)
  * @returns AppEnv 환경 변수 객체
- * @throws Error 필수 환경 변수가 없을 경우
+ * @throws ZodError 필수 환경 변수가 없을 경우
  */
-export const extractCloudflareEnv = (
-	cloudflareEnv: Record<string, unknown>,
-): AppEnv => {
-	const env: Partial<AppEnv> = {
-		DATABASE_URL: cloudflareEnv.DATABASE_URL as string | undefined,
-		BASE_URL: cloudflareEnv.BASE_URL as string | undefined,
-		BETTER_AUTH_SECRET: cloudflareEnv.BETTER_AUTH_SECRET as string | undefined,
-
-		// OAuth: GitHub
-		GITHUB_CLIENT_ID: cloudflareEnv.GITHUB_CLIENT_ID as string | undefined,
-		GITHUB_CLIENT_SECRET: cloudflareEnv.GITHUB_CLIENT_SECRET as
-			| string
-			| undefined,
-
-		// OAuth: Google
-		GOOGLE_CLIENT_ID: cloudflareEnv.GOOGLE_CLIENT_ID as string | undefined,
-		GOOGLE_CLIENT_SECRET: cloudflareEnv.GOOGLE_CLIENT_SECRET as
-			| string
-			| undefined,
-
-		// OAuth: Kakao
-		KAKAO_CLIENT_ID: cloudflareEnv.KAKAO_CLIENT_ID as string | undefined,
-		KAKAO_CLIENT_SECRET: cloudflareEnv.KAKAO_CLIENT_SECRET as
-			| string
-			| undefined,
-
-		// Email: Resend
-		RESEND_API_KEY: cloudflareEnv.RESEND_API_KEY as string | undefined,
-		RESEND_FROM_EMAIL: cloudflareEnv.RESEND_FROM_EMAIL as string | undefined,
-	};
-
-	validateRequiredEnv(env);
-
-	return env as AppEnv;
+export const extractCloudflareEnv = (cloudflareEnv: Env): AppEnv => {
+	// Env 타입(wrangler types 생성)은 인덱스 시그니처가 없으므로
+	// Record<string, unknown>으로 변환하려면 unknown을 경유해야 함
+	// 이 캐스팅은 타입 안전성을 보장하는 parseEnv 내부에서만 사용됨
+	const source = cloudflareEnv as unknown as Record<string, unknown>;
+	return parseEnv(source);
 };

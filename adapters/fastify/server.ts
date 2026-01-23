@@ -1,7 +1,7 @@
 import path from "node:path";
 import fastifyStatic from "@fastify/static";
 import middie from "@fastify/middie";
-import { extractNodeEnv } from "adapters/shared/node.env.adapter";
+import { extractNodeEnv } from "adapters/shared/env";
 import Fastify from "fastify";
 import type { ViteDevServer } from "vite";
 import {
@@ -10,9 +10,6 @@ import {
 	type ServerBuild,
 } from "react-router";
 import { createContainer } from "~/infrastructure/config/container";
-
-// 타입 선언은 adapters/shared/react-router.d.ts에서 관리
-import "adapters/shared/react-router.d.ts";
 
 const PORT = Number(process.env.PORT) || 3000;
 const isDev = process.env.NODE_ENV !== "production";
@@ -175,5 +172,3 @@ export const startFastifyServer = async () => {
 if (import.meta.url === `file://${process.argv[1]}`) {
 	startFastifyServer();
 }
-
-export default startFastifyServer;

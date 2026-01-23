@@ -1,7 +1,10 @@
 /**
- * User 도메인 기본 에러 클래스
+ * User 도메인 기본 에러 추상 클래스
+ *
+ * 모든 User 관련 에러의 기본 클래스입니다.
+ * 직접 인스턴스화하지 않고 반드시 상속하여 사용해야 합니다.
  */
-export class UserError extends Error {
+export abstract class UserError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = "UserError";

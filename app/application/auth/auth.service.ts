@@ -1,10 +1,12 @@
 import { DuplicateEmailError } from "~/domain/auth";
 import type { IUser } from "~/domain/user";
 import type { IUserRepository } from "../user/user.port";
+import { SESSION_COOKIE_NAMES } from "./auth.const";
 import type {
 	IAuthProvider,
 	OAuthSignInResult,
 	SignInResult,
+	SignUpUser,
 } from "./auth.port";
 
 /**
@@ -48,13 +50,15 @@ export const createAuthService = (
 	 *
 	 * 1. 이메일 중복 체크
 	 * 2. Better-auth로 사용자 생성 (프로필은 databaseHooks에서 자동 생성)
+	 *
+	 * @returns SignUpUser - 회원가입 직후에는 id가 없을 수 있음 (이메일 인증 필요)
 	 */
 	async signUp(
 		email: string,
 		password: string,
 		name: string,
 		headers: Headers,
-	): Promise<IUser> {
+	): Promise<SignUpUser> {
 		// 1. 이메일 중복 체크
 		const existingUser = await userRepository.findByEmail(email);
 		if (existingUser) {
@@ -123,5 +127,20 @@ export const createAuthService = (
 		headers: Headers,
 	): Promise<void> {
 		return authProvider.resetPassword(newPassword, token, headers);
+	},
+
+	/**
+	 * 세션 쿠키 클리어 헤더 생성
+	 * 로그아웃 시 클라이언트 쿠키 삭제용
+	 */
+	clearSessionHeaders() {
+		const headers = new Headers();
+		for (const name of SESSION_COOKIE_NAMES) {
+			headers.append(
+				"Set-Cookie",
+				`${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly`,
+			);
+		}
+		return headers;
 	},
 });

@@ -16,15 +16,13 @@ export interface IUser extends BaseEntity {
  * Profile 엔티티 인터페이스
  *
  * 사용자의 추가 정보를 저장하는 프로필 도메인 모델
+ * BaseEntity를 확장하여 일관된 구조를 유지합니다.
  */
-export interface IProfile {
-	id: string;
+export interface IProfile extends BaseEntity {
 	userId: string;
 	fullName: string | null;
 	avatarUrl: string | null;
 	bio: string | null;
-	createdAt: Date;
-	updatedAt: Date;
 }
 
 /**

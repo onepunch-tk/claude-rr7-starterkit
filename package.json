@@ -24,7 +24,7 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"db:auth": "bunx @better-auth/cli generate --config app/infrastructure/external/better-auth/auth.config.ts --output app/infrastructure/persistence/schema/auth.schema.ts",
+		"db:auth": "bunx @better-auth/cli generate --config app/infrastructure/external/better-auth/auth.cli.ts --output app/infrastructure/persistence/schema/auth.schema.ts",
 		"docker:build": "docker build -f docker/Dockerfile -t claude-rr7-starterkit .",
 		"docker:run": "docker run -p 3000:3000 --env-file docker/.env.docker claude-rr7-starterkit",
 		"docker:prune": "docker image prune -f"

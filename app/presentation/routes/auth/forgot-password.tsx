@@ -1,4 +1,3 @@
-import type { ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData } from "react-router";
 import { type AuthActionResponse, forgotPasswordSchema } from "~/domain/auth";
 import { FormField, SubmitButton } from "~/presentation/components/forms";
@@ -30,7 +29,7 @@ export const meta: Route.MetaFunction = () => [
 export const action = async ({
 	request,
 	context,
-}: ActionFunctionArgs): Promise<AuthActionResponse> => {
+}: Route.ActionArgs): Promise<AuthActionResponse> => {
 	if (request.method !== "POST") {
 		return { error: "POST 요청만 허용됩니다." };
 	}

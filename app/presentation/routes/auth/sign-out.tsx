@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
+import type { Route } from "./+types/sign-out";
 
 /**
  * 로그아웃 라우트
@@ -8,13 +8,13 @@ import { redirect } from "react-router";
  * Supabase 세션 삭제 후에도 클라이언트가 로그인 상태를 유지하는 문제를 방지하기 위해
  * 세션 쿠키를 명시적으로 삭제
  */
-export const action = async ({ request, context }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: Route.ActionArgs) => {
 	// HTTP 메서드 검증 (POST만 허용)
 	if (request.method !== "POST") {
 		throw new Response("Method not allowed", { status: 405 });
 	}
 
-	const headers = context.container.createClearSessionHeaders();
+	const headers = context.container.authService.clearSessionHeaders();
 
 	try {
 		await context.container.authService.signOut(request.headers);
