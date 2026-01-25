@@ -1,149 +1,149 @@
 ---
 name: agent-creator
-description: "Claude Code 서브에이전트 파일(.md) 작성을 위한 가이드. 사용 시점: (1) 새로운 서브에이전트를 생성할 때, (2) 기존 에이전트를 수정하거나 개선할 때, (3) 에이전트의 역할 범위나 트리거 조건을 정의할 때, (4) 에이전트 설정(model, tools, permissionMode)을 구성할 때. 템플릿, 예제, 도구 레퍼런스 포함."
+description: "Guide for creating Claude Code subagent files (.md). Use when: (1) Creating a new subagent, (2) Modifying or improving an existing agent, (3) Defining the agent's role scope or trigger conditions, (4) Configuring agent settings (model, tools, permissionMode). Includes templates, examples, and tool references."
 ---
 
-# 서브에이전트 작성 가이드
+# Subagent Creation Guide
 
-## 작성 워크플로우
+## Writing Workflow
 
-1. **템플릿 복사**: [references/template.md](./references/template.md)에서 구조 복사
-2. **예제 참고**: [references/example.md](./references/example.md)에서 유사 패턴 확인
-3. **섹션별 작성**: 아래 가이드에 따라 내용 작성
-4. **도구 선택**: [references/tools.md](./references/tools.md)에서 필요한 도구 선택
-5. **체크리스트 검증**: 최종 점검
-
----
-
-## 저장 위치
-
-| 위치 | 용도 | 우선순위 |
-|------|------|----------|
-| `.claude/agents/` | 프로젝트 전용 | 높음 |
-| `~/.claude/agents/` | 전역 공유 | 낮음 |
+1. **Copy Template**: Copy structure from [references/template.md](./references/template.md)
+2. **Reference Examples**: Check similar patterns in [references/example.md](./references/example.md)
+3. **Write Section by Section**: Follow the guide below to write content
+4. **Select Tools**: Choose necessary tools from [references/tools.md](./references/tools.md)
+5. **Verify Checklist**: Final inspection
 
 ---
 
-## YAML 프론트매터
+## Storage Location
 
-### 필수 필드
+| Location | Purpose | Priority |
+|----------|---------|----------|
+| `.claude/agents/` | Project-specific | High |
+| `~/.claude/agents/` | Global shared | Low |
 
-| 필드 | 설명 | 예시 |
-|------|------|------|
-| `name` | kebab-case 이름 | `code-reviewer` |
-| `description` | 트리거 조건 (번호 목록) | 아래 패턴 참조 |
+---
 
-### 선택 필드
+## YAML Frontmatter
 
-| 필드 | 기본값 | 옵션 |
-|------|--------|------|
+### Required Fields
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `name` | kebab-case name | `code-reviewer` |
+| `description` | Trigger conditions (numbered list) | See pattern below |
+
+### Optional Fields
+
+| Field | Default | Options |
+|-------|---------|---------|
 | `model` | inherit | `opus`, `sonnet`, `haiku`, `inherit` |
-| `tools` | 전체 상속 | [도구 레퍼런스](./references/tools.md) 참조 |
+| `tools` | Inherit all | See [Tool Reference](./references/tools.md) |
 | `permissionMode` | default | `default`, `acceptEdits`, `bypassPermissions`, `plan` |
-| `skills` | - | 자동 로드할 스킬 목록 |
-| `color` | - | UI 색상 (`red`, `purple`, `blue`, `green` 등) |
+| `skills` | - | List of skills to auto-load |
+| `color` | - | UI color (`red`, `purple`, `blue`, `green`, etc.) |
 
-### description 작성 패턴
+### Description Writing Pattern
 
 ```yaml
-description: "use proactively, Use this agent when: 1) 조건1, 2) 조건2, 3) 조건3, 4) 조건4. 추가 설명."
+description: "use proactively, Use this agent when: 1) condition1, 2) condition2, 3) condition3, 4) condition4. Additional explanation."
 ```
 
-### description 작성 지침
+### Description Writing Guidelines
 
-- **`use proactively` 필수 포함**: description 시작 부분에 포함하면 Claude가 자동으로 에이전트를 위임
-- **트리거 조건 번호 목록**: `Use this agent when:` 다음에 1), 2), 3), 4) 형식으로 조건 나열
-- **추가 설명**: 마지막에 에이전트의 특성이나 실행 방식 설명 추가
+- **Must include `use proactively`**: Include at the beginning of description for Claude to automatically delegate to the agent
+- **Numbered trigger conditions**: List conditions in 1), 2), 3), 4) format after `Use this agent when:`
+- **Additional explanation**: Add description of agent characteristics or execution method at the end
 
-### model 선택 기준
+### Model Selection Criteria
 
-| 모델 | 용도 |
-|------|------|
-| `inherit` | 부모 모델 상속 (권장 기본값) |
-| `opus` | 복잡한 분석, 깊은 추론 |
-| `sonnet` | 균형 잡힌 성능의 일반 작업 |
-| `haiku` | 빠른 응답이 필요한 간단한 작업 |
+| Model | Purpose |
+|-------|---------|
+| `inherit` | Inherit parent model (recommended default) |
+| `opus` | Complex analysis, deep reasoning |
+| `sonnet` | General tasks with balanced performance |
+| `haiku` | Simple tasks requiring fast response |
 
 ---
 
-## 본문 필수 섹션
+## Required Body Sections
 
-### 1. 역할 소개
+### 1. Role Introduction
 
 ```markdown
-당신은 **{전문가 칭호}**입니다. {경력/전문성}을 바탕으로 {담당 업무}를 수행합니다.
+You are a **{expert title}**. Based on {experience/expertise}, you perform {responsibilities}.
 ```
 
-### 2. 핵심 역할 및 책임
+### 2. Core Roles and Responsibilities
 
-에이전트의 주요 기능, 자동/수동 실행 여부, 사용하는 도구/참조 자료
+Agent's main functions, automatic/manual execution, tools/references used
 
-### 3. 역할 범위 제한 (중요)
+### 3. Role Scope Limitations (Important)
 
-다른 에이전트와의 역할 중복 방지:
+Prevent role overlap with other agents:
 
 ```markdown
-### 검토하지 않는 항목
-- ❌ {다른 에이전트 담당 항목}
+### Items NOT reviewed
+- ❌ {Items handled by other agents}
 
-### 검토하는 항목
-- ✅ {이 에이전트 담당 항목}
+### Items reviewed
+- ✅ {Items handled by this agent}
 ```
 
-### 4. 작업 실행 모드
+### 4. Task Execution Modes
 
-- **모드 1 - 자동 실행**: 트리거 조건, 자동 수집 정보
-- **모드 2 - 수동 실행**: 사용자 지정 범위
+- **Mode 1 - Automatic Execution**: Trigger conditions, automatically collected information
+- **Mode 2 - Manual Execution**: User-specified scope
 
-### 5. 필수 작업 절차
+### 5. Required Work Procedures
 
-단계별 프로세스 (도구, 참조 리소스, 판단 기준 명시)
+Step-by-step process (specify tools, reference resources, decision criteria)
 
-### 6. 출력 언어
+### 6. Output Language
 
 ```markdown
-모든 분석 결과, 주석, 리포트는 **한국어**로 작성합니다.
+All analysis results, comments, and reports are written in **Korean**.
 ```
 
 ---
 
-## 선택 섹션
+## Optional Sections
 
-| 섹션 | 용도 |
-|------|------|
-| 심각도 분류 기준 | 리뷰/검증 에이전트 |
-| 병렬 실행 최적화 | 백그라운드 실행 에이전트 |
-| 품질 보증 | 거짓 양성 최소화, 결과물 구체성 |
-
----
-
-## 체크리스트
-
-### 필수 항목
-
-- [ ] `name`이 kebab-case로 작성되었는가?
-- [ ] `description`이 트리거 조건을 번호 목록으로 명시하는가?
-- [ ] [템플릿](./references/template.md) 구조를 따르는가?
-- [ ] [예제](./references/example.md) 패턴을 참고했는가?
-
-### 선택 항목
-
-- [ ] `model`이 적절히 선택되었는가? (`inherit` 권장)
-- [ ] `tools` 제한이 필요한가? ([도구 레퍼런스](./references/tools.md))
-- [ ] `permissionMode`가 필요한가?
-
-### 품질 항목
-
-- [ ] 역할 범위가 다른 에이전트와 중복되지 않는가?
-- [ ] 필수 작업 절차가 단계별로 명확한가?
-- [ ] 출력 언어가 지정되어 있는가?
+| Section | Purpose |
+|---------|---------|
+| Severity Classification Criteria | Review/validation agents |
+| Parallel Execution Optimization | Background execution agents |
+| Quality Assurance | Minimize false positives, result specificity |
 
 ---
 
-## 레퍼런스 문서
+## Checklist
 
-| 문서 | 설명 |
-|------|------|
-| [template.md](./references/template.md) | 기본 템플릿 구조 |
-| [example.md](./references/example.md) | 실제 구현 예제 |
-| [tools.md](./references/tools.md) | 사용 가능한 도구 목록 |
+### Required Items
+
+- [ ] Is `name` written in kebab-case?
+- [ ] Does `description` specify trigger conditions in a numbered list?
+- [ ] Does it follow the [template](./references/template.md) structure?
+- [ ] Was the [example](./references/example.md) pattern referenced?
+
+### Optional Items
+
+- [ ] Is `model` appropriately selected? (`inherit` recommended)
+- [ ] Is `tools` restriction needed? ([Tool Reference](./references/tools.md))
+- [ ] Is `permissionMode` needed?
+
+### Quality Items
+
+- [ ] Does the role scope not overlap with other agents?
+- [ ] Are required work procedures clear step by step?
+- [ ] Is the output language specified?
+
+---
+
+## Reference Documents
+
+| Document | Description |
+|----------|-------------|
+| [template.md](./references/template.md) | Basic template structure |
+| [example.md](./references/example.md) | Actual implementation examples |
+| [tools.md](./references/tools.md) | List of available tools |

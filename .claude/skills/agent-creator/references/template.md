@@ -1,87 +1,87 @@
-# Claude Code 서브에이전트 템플릿
+# Claude Code Subagent Template
 
-이 문서는 서브에이전트 파일의 표준 템플릿입니다.
+This document is the standard template for subagent files.
 
 ---
 
-## 템플릿 구조
+## Template Structure
 
 ```markdown
 ---
-name: {에이전트-이름}
-description: "use proactively, Use this agent when: 1) {조건1}, 2) {조건2}, 3) {조건3}, 4) {조건4}. {추가 설명}"
+name: {agent-name}
+description: "use proactively, Use this agent when: 1) {condition1}, 2) {condition2}, 3) {condition3}, 4) {condition4}. {additional explanation}"
 model: {sonnet|opus|haiku|inherit}
-tools: {도구1, 도구2, 도구3}
+tools: {tool1, tool2, tool3}
 permissionMode: {default|acceptEdits|bypassPermissions|plan}
-skills: {스킬1, 스킬2}
-color: {선택적 - UI 색상}
+skills: {skill1, skill2}
+color: {optional - UI color}
 ---
 
-{역할 소개 문단}
+{Role introduction paragraph}
 
-## 핵심 역할 및 책임
+## Core Roles and Responsibilities
 
-{에이전트의 주요 담당 업무 설명}
-
----
-
-## ⚠️ 역할 범위 제한 (중요)
-
-{역할 범위에 대한 설명}
-
-### 검토하지 않는 항목
-- ❌ {다른 에이전트가 담당하는 항목 1}
-- ❌ {다른 에이전트가 담당하는 항목 2}
-
-### 검토하는 항목
-- ✅ {이 에이전트가 담당하는 항목 1}
-- ✅ {이 에이전트가 담당하는 항목 2}
+{Description of agent's main responsibilities}
 
 ---
 
-## 작업 실행 모드
+## ⚠️ Role Scope Limitations (Important)
 
-### 모드 1: 자동 실행
-{자동으로 트리거되는 조건과 실행 방식}
+{Description of role scope}
 
-### 모드 2: 수동 실행
-{사용자 요청 시 실행 방식}
+### Items NOT reviewed
+- ❌ {Item handled by other agents 1}
+- ❌ {Item handled by other agents 2}
 
-## 필수 작업 절차
+### Items reviewed
+- ✅ {Item handled by this agent 1}
+- ✅ {Item handled by this agent 2}
 
-### 1단계: {단계명}
-{단계별 상세 작업 내용}
+---
 
-### 2단계: {단계명}
-{단계별 상세 작업 내용}
+## Task Execution Modes
 
-### 3단계: {단계명}
-{단계별 상세 작업 내용}
+### Mode 1: Automatic Execution
+{Conditions and methods for automatic triggering}
 
-### 4단계: {단계명}
-{단계별 상세 작업 내용}
+### Mode 2: Manual Execution
+{Execution method upon user request}
+
+## Required Work Procedures
+
+### Step 1: {Step Name}
+{Detailed work content for each step}
+
+### Step 2: {Step Name}
+{Detailed work content for each step}
+
+### Step 3: {Step Name}
+{Detailed work content for each step}
+
+### Step 4: {Step Name}
+{Detailed work content for each step}
 
 ...
 
-## 심각도 분류 기준 (선택)
+## Severity Classification Criteria (Optional)
 
-- **CRITICAL**: {가장 심각한 문제 정의}
-- **HIGH**: {높은 심각도 문제 정의}
-- **MEDIUM**: {중간 심각도 문제 정의}
-- **LOW**: {낮은 심각도 문제 정의}
-- **INFO**: {정보성 제안 정의}
+- **CRITICAL**: {Definition of most severe issues}
+- **HIGH**: {Definition of high severity issues}
+- **MEDIUM**: {Definition of medium severity issues}
+- **LOW**: {Definition of low severity issues}
+- **INFO**: {Definition of informational suggestions}
 
-## 병렬 실행 최적화 (선택)
+## Parallel Execution Optimization (Optional)
 
-{백그라운드 실행 에이전트를 위한 병렬 처리 가이드라인}
+{Parallel processing guidelines for background execution agents}
 
-## 출력 언어
+## Output Language
 
-{출력 언어 설정}
+{Output language settings}
 
-## 품질 보증
+## Quality Assurance
 
-{품질 관련 가이드라인}
+{Quality-related guidelines}
 ```
 
 ---

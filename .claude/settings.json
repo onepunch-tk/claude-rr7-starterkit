@@ -1,7 +1,10 @@
 {
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": false
-  }
+	"enabledPlugins": {
+		"rust-analyzer-lsp@claude-plugins-official": true,
+		"typescript-lsp@claude-plugins-official": true,
+		"ralph-loop@claude-plugins-official": false
+	},
+	"evn": {
+		"CLAUDE_CODE_TASK_LIST_ID": "cc_rr7_starterkit"
+	}
 }

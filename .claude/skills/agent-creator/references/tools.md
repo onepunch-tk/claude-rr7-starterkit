@@ -1,80 +1,80 @@
-# 서브에이전트 도구 레퍼런스
+# Subagent Tool Reference
 
-서브에이전트가 사용할 수 있는 도구 목록입니다.
-`tools` 필드를 생략하면 모든 도구를 상속받습니다.
-
----
-
-## 코어 도구
-
-| 도구 | 설명 |
-|------|------|
-| `Read` | 파일 내용 읽기 |
-| `Write` | 파일 생성 또는 덮어쓰기 |
-| `Edit` | 기존 파일 정밀 편집 |
-| `Glob` | 패턴 매칭으로 파일 찾기 |
-| `Grep` | 정규식으로 파일 내용 검색 |
-| `Bash` | 셸 명령어 실행 |
-| `Task` | 서브에이전트 생성 (서브에이전트에서 비권장) |
-
-## 상호작용 도구
-
-| 도구 | 설명 |
-|------|------|
-| `AskUser` | 사용자에게 질문하여 명확화 |
-| `TodoWrite` | 작업 목록 관리 |
-
-## 웹 도구
-
-| 도구 | 설명 |
-|------|------|
-| `WebFetch` | 웹 콘텐츠 가져오기 및 처리 |
-| `WebSearch` | 웹 검색 |
-
-## MCP 도구
-
-설정된 MCP 서버의 도구도 사용 가능합니다.
-MCP 도구명은 `mcp__<서버>__<도구>` 패턴을 따릅니다.
+This is a list of tools available for subagents.
+If the `tools` field is omitted, all tools are inherited.
 
 ---
 
-## 일반적인 도구 조합
+## Core Tools
 
-### 읽기 전용 리서치
+| Tool | Description |
+|------|-------------|
+| `Read` | Read file contents |
+| `Write` | Create or overwrite files |
+| `Edit` | Precise editing of existing files |
+| `Glob` | Find files by pattern matching |
+| `Grep` | Search file contents with regex |
+| `Bash` | Execute shell commands |
+| `Task` | Create subagents (not recommended from subagents) |
+
+## Interaction Tools
+
+| Tool | Description |
+|------|-------------|
+| `AskUser` | Ask user questions for clarification |
+| `TodoWrite` | Manage task lists |
+
+## Web Tools
+
+| Tool | Description |
+|------|-------------|
+| `WebFetch` | Fetch and process web content |
+| `WebSearch` | Web search |
+
+## MCP Tools
+
+Tools from configured MCP servers are also available.
+MCP tool names follow the `mcp__<server>__<tool>` pattern.
+
+---
+
+## Common Tool Combinations
+
+### Read-Only Research
 
 ```yaml
 tools: Read, Grep, Glob, Bash
 ```
 
-**용도:** 코드 분석, 문서 검토, 코드베이스 탐색
+**Use case:** Code analysis, documentation review, codebase exploration
 
-### 코드 수정
+### Code Modification
 
 ```yaml
 tools: Read, Write, Edit, Grep, Glob, Bash
 ```
 
-**용도:** 기능 구현, 버그 수정, 리팩토링
+**Use case:** Feature implementation, bug fixes, refactoring
 
-### 최소 쓰기 권한
+### Minimal Write Permission
 
 ```yaml
 tools: Read, Grep, Glob
 ```
 
-**용도:** 보안 감사, 코드 리뷰 (리포트만)
+**Use case:** Security audit, code review (reports only)
 
-### 전체 접근
+### Full Access
 
-`tools` 필드를 생략하면 모든 도구를 상속받습니다.
+Omitting the `tools` field inherits all tools.
 
 ---
 
-## 도구 선택 가이드
+## Tool Selection Guide
 
-| 에이전트 유형 | 권장 도구 조합 |
-|--------------|---------------|
-| 분석/리뷰 전용 | `Read, Grep, Glob` |
-| 분석 + 명령 실행 | `Read, Grep, Glob, Bash` |
-| 코드 생성/수정 | `Read, Write, Edit, Grep, Glob, Bash` |
-| 전체 권한 필요 | `tools` 필드 생략 |
+| Agent Type | Recommended Tool Combination |
+|------------|------------------------------|
+| Analysis/Review Only | `Read, Grep, Glob` |
+| Analysis + Command Execution | `Read, Grep, Glob, Bash` |
+| Code Generation/Modification | `Read, Write, Edit, Grep, Glob, Bash` |
+| Full Permission Needed | Omit `tools` field |
