@@ -15,3 +15,21 @@ upload_source_maps = true
 [assets]
 directory = "./public/"
 binding = "ASSETS"
+
+# ============================================
+# Cloudflare Bindings (필요 시 주석 해제)
+# ============================================
+
+# KV Namespace
+# bunx wrangler kv namespace create <NAME> 으로 생성 후 id 입력
+# [[kv_namespaces]]
+# binding = "MY_KV"
+# id = "<KV_NAMESPACE_ID>"
+# preview_id = "<KV_PREVIEW_ID>"  # 선택사항
+
+# D1 Database
+# bunx wrangler d1 create <NAME> 으로 생성 후 database_id 입력
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "<DATABASE_NAME>"
+# database_id = "<DATABASE_ID>"

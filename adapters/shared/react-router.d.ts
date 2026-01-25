@@ -6,7 +6,7 @@ import type { AppEnv } from "./env";
  * React Router의 AppLoadContext 타입 확장
  *
  * 모든 플랫폼(Cloudflare, Express, Fastify)에서 공통으로 사용됩니다.
- * - cloudflare: Cloudflare Workers 환경에서만 존재, Node.js에서는 undefined
+ * - cloudflare: Workers의 ExecutionContext만 제공 (env는 AppEnv로 통합)
  */
 declare module "react-router" {
 	export interface AppLoadContext {

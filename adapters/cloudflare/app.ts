@@ -21,7 +21,7 @@ export default {
 		return requestHandler(request, {
 			env,
 			platform: "cloudflare",
-			cloudflare: { env: cloudflareEnv, ctx },
+			cloudflare: { ctx },
 			container,
 		});
 	},
