@@ -58,6 +58,9 @@ export const startFastifyServer = async () => {
 			const mod = await viteServer!.ssrLoadModule(
 				"virtual:react-router/server-build",
 			);
+			// Vite의 virtual:react-router/server-build 모듈은 ServerBuild 구조를 직접 export
+			// ssrLoadModule 반환 타입이 Record<string, any>이므로 명시적 캐스팅 필요
+			// React Router Vite 플러그인이 올바른 구조를 보장함
 			return mod as ServerBuild;
 		};
 	} else {
@@ -82,6 +85,8 @@ export const startFastifyServer = async () => {
 		// 빌드 시 Vite가 이 import를 resolve하여 ServerBuild를 인라인
 		// 개발 모드에서는 이 코드가 실행되지 않으므로 tsx에서도 오류 없음
 		const serverBuild = await import("virtual:react-router/server-build");
+		// 이중 캐스팅 이유: Vite 가상 모듈의 타입 정의(ImportMeta)가
+		// 실제 런타임 ServerBuild 구조와 일치하지 않아 unknown 경유 필요
 		getBuild = async () => serverBuild as unknown as ServerBuild;
 	}
 

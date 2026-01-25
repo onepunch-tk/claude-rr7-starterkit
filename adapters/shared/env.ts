@@ -80,5 +80,7 @@ export const parseEnv = (source: Record<string, unknown>): AppEnv => {
  * @throws ZodError 필수 환경 변수가 없을 경우
  */
 export const extractNodeEnv = (): AppEnv => {
+	// process.env 타입(NodeJS.ProcessEnv)은 string | undefined 값을 가지므로
+	// Record<string, unknown>으로 캐스팅 필요. parseEnv 내부에서 Zod 스키마로 검증됨
 	return parseEnv(process.env as Record<string, unknown>);
 };

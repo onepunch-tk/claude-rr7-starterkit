@@ -117,6 +117,39 @@ Focus on checking the following security vulnerability categories:
    - Insecure random number generation
    - Hardcoded encryption keys
 
+### Step 2.3: Evidence-Based Validation (MANDATORY)
+
+**Every security finding MUST include rationale and evidence. Speculative findings MUST be excluded.**
+
+#### Validation Protocol
+
+Before reporting any vulnerability, you MUST verify:
+
+1. **Rationale Check**: Can you explain the specific security risk?
+   - Reference OWASP Top 10 category (from Step 1 guidelines)
+   - Explain the attack vector and potential impact
+   - If the risk is theoretical without clear exploitation path, DO NOT report it
+
+2. **Evidence Check**: Do you have CONCRETE proof?
+   - **Code Evidence**: Exact vulnerable code snippet
+   - **Attack Vector**: Specific example of how this could be exploited
+   - **OWASP Reference**: Direct link to relevant OWASP guideline
+   - **Audit Evidence**: CVE/GHSA ID from package audit (Step 2.5)
+
+3. **Confidence Threshold**:
+   - ✅ Report: Clear rationale + concrete evidence + known attack vector
+   - ❌ Do NOT Report: Speculative risk OR no concrete evidence OR uncertainty about exploitability
+
+#### Required Fields
+See `.claude/skills/review-report/SKILL.md` for field definitions.
+
+#### ⚠️ Self-Review Before Report Generation
+
+Before finalizing the security report, perform a second pass:
+1. For each finding, ask: "Can I demonstrate a concrete attack scenario?"
+2. Ask: "Is there a real-world exploitation risk, not just theoretical?"
+3. Remove any finding where you cannot confidently answer "Yes" to both questions
+
 ### Step 2.5: Package Vulnerability Audit
 
 **Must** perform package vulnerability scanning before report generation.
@@ -169,21 +202,13 @@ Package vulnerabilities must be included in the final report with:
 - OWASP reference: A06:2021 - Vulnerable and Outdated Components
 
 ### Step 3: Report Generation
-**Must** read the `.claude/skills/review-report/SKILL.md` file using the Read tool to check report generation guidelines.
 
-Pre-report save checklist:
-1. Check if `docs/reports/security-review` directory exists
-2. Check naming conventions of existing report files (`.md` format)
-3. Maintain consistency with existing reports
+**⚠️ MANDATORY**: Read `.claude/skills/review-report/SKILL.md` and follow its procedure exactly.
 
-Report must include:
-- Review date and scope
-- List of discovered vulnerabilities (classified by severity)
-- Detailed description and location of each vulnerability
-- Recommended fixes
-- OWASP reference links
-- Package vulnerability audit results (from Step 2.5)
-- Overall security score/grade
+Key requirements:
+1. **MUST** use `generate_report.py` script with `--output docs/reports/security-review`
+2. **Even if NO issues found**, run script with `--issues '[]'`
+3. **DO NOT** write markdown files directly or create custom formats
 
 ## Severity Classification Criteria
 

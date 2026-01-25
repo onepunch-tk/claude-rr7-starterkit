@@ -37,7 +37,10 @@ Organize discovered issues as a JSON array:
     "severity": "high",
     "category": "type-safety",
     "problem": "Type safety violation due to any type usage",
-    "suggestion": "Change to unknown type and apply Type Guard"
+    "suggestion": "Change to unknown type and apply Type Guard",
+    "rationale": "TypeScript strict mode requires explicit typing to prevent runtime errors",
+    "evidence": "Code: `const data: any = response;` violates project TypeScript rules (CLAUDE.md Section 4)",
+    "references": []
   }
 ]
 ```
@@ -117,7 +120,9 @@ Track your progress by checking off fixed issues:
 | category | O | Issue classification (type-safety, convention, security, etc.) |
 | problem | O | Detailed problem description |
 | suggestion | O | Fix suggestion |
-| references | X | Array of referenced document paths (optional) |
+| rationale | O | Reasoning basis for why this is an issue (reference to rules, best practices, documentation) |
+| evidence | O | Concrete proof supporting the finding (code snippet, compiler error, documentation quote, context7 reference) |
+| references | O | Array of referenced document paths (use empty array [] if none) |
 
 ---
 

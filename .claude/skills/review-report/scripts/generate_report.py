@@ -58,6 +58,8 @@ class Issue(TypedDict, total=False):
     category: str
     problem: str
     suggestion: str
+    rationale: str
+    evidence: str
     references: list[str]
 
 
@@ -130,7 +132,7 @@ def calculate_severity_count(issues: list[Issue]) -> SeverityCount:
 
 def validate_issues(issues: list[Issue]) -> tuple[bool, str]:
     """이슈 데이터 유효성 검사"""
-    required_fields = {"file", "location", "severity", "category", "problem", "suggestion"}
+    required_fields = {"file", "location", "severity", "category", "problem", "suggestion", "rationale", "evidence", "references"}
 
     for idx, issue in enumerate(issues):
         # 필수 필드 확인
@@ -186,8 +188,8 @@ def generate_issues_table(issues: list[Issue], severity: str) -> str:
 
     lines = [
         f"\n### {emoji} {label} Issues\n",
-        "| # | File | Location | Category | Problem | Suggestion |",
-        "|---|------|----------|----------|---------|------------|",
+        "| # | File | Location | Category | Problem | Suggestion | Rationale | Evidence | References |",
+        "|---|------|----------|----------|---------|------------|-----------|----------|------------|",
     ]
 
     for idx, issue in enumerate(filtered, 1):
@@ -196,8 +198,12 @@ def generate_issues_table(issues: list[Issue], severity: str) -> str:
         category = escape_markdown_table(issue.get("category", ""))
         problem = escape_markdown_table(issue.get("problem", ""))
         suggestion = escape_markdown_table(issue.get("suggestion", ""))
+        rationale = escape_markdown_table(issue.get("rationale", ""))
+        evidence = escape_markdown_table(issue.get("evidence", ""))
+        references = issue.get("references", [])
+        references_str = escape_markdown_table(", ".join(references) if references else "-")
 
-        lines.append(f"| {idx} | {file_path} | {location} | {category} | {problem} | {suggestion} |")
+        lines.append(f"| {idx} | {file_path} | {location} | {category} | {problem} | {suggestion} | {rationale} | {evidence} | {references_str} |")
 
     return "\n".join(lines)
 

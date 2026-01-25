@@ -30,27 +30,27 @@ This document defines the standard Markdown format for review reports.
 
 ### 🔴 Critical Issues
 
-| # | File | Location | Category | Problem | Suggestion |
-|---|------|----------|----------|---------|------------|
-| 1 | path/to/file.ts | 23:5 | category | Description | Fix recommendation |
+| # | File | Location | Category | Problem | Suggestion | Rationale | Evidence | References |
+|---|------|----------|----------|---------|------------|-----------|----------|------------|
+| 1 | path/to/file.ts | 23:5 | category | Description | Fix recommendation | Why this is a problem | Code snippet or pattern found | CWE-XXX, OWASP-XXX |
 
 ### 🟠 High Issues
 
-| # | File | Location | Category | Problem | Suggestion |
-|---|------|----------|----------|---------|------------|
-| 1 | path/to/file.ts | 45:10 | category | Description | Fix recommendation |
+| # | File | Location | Category | Problem | Suggestion | Rationale | Evidence | References |
+|---|------|----------|----------|---------|------------|-----------|----------|------------|
+| 1 | path/to/file.ts | 45:10 | category | Description | Fix recommendation | Why this is a problem | Code snippet or pattern found | CWE-XXX, OWASP-XXX |
 
 ### 🟡 Medium Issues
 
-| # | File | Location | Category | Problem | Suggestion |
-|---|------|----------|----------|---------|------------|
-| 1 | path/to/file.ts | 67:3 | category | Description | Fix recommendation |
+| # | File | Location | Category | Problem | Suggestion | Rationale | Evidence | References |
+|---|------|----------|----------|---------|------------|-----------|----------|------------|
+| 1 | path/to/file.ts | 67:3 | category | Description | Fix recommendation | Why this is a problem | Code snippet or pattern found | - |
 
 ### 🟢 Low Issues
 
-| # | File | Location | Category | Problem | Suggestion |
-|---|------|----------|----------|---------|------------|
-| 1 | path/to/file.ts | 89:1 | category | Description | Fix recommendation |
+| # | File | Location | Category | Problem | Suggestion | Rationale | Evidence | References |
+|---|------|----------|----------|---------|------------|-----------|----------|------------|
+| 1 | path/to/file.ts | 89:1 | category | Description | Fix recommendation | Why this is a problem | Code snippet or pattern found | - |
 
 ---
 
@@ -101,6 +101,9 @@ Additional context, recommendations, or observations from the review.
   - `Category`: Issue category (type-safety, injection, etc.)
   - `Problem`: Concise problem description
   - `Suggestion`: Recommended fix
+  - `Rationale`: Explanation of why this is a problem
+  - `Evidence`: Code snippet or pattern that demonstrates the issue
+  - `References`: Related standards (CWE, OWASP, etc.) or documentation links
 
 ### Fix Checklist
 - One checkbox per issue for tracking progress

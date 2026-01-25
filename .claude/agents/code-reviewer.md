@@ -287,21 +287,47 @@ Based on the learned documentation, thoroughly review the following items:
    - Check that variables, functions, and file names follow appropriate English naming conventions (camelCase, PascalCase).
    - Evaluate code duplication, complexity, and testability.
 
+### Step 3.5: Evidence-Based Validation (MANDATORY)
+
+**Every finding MUST include rationale and evidence. Uncertain findings MUST be excluded.**
+
+#### Validation Protocol
+
+Before adding any issue to the report, you MUST verify:
+
+1. **Rationale Check**: Can you clearly explain WHY this is a problem?
+   - Reference specific rules (project conventions, TypeScript best practices, React 19 guidelines)
+   - Link to documentation (context7 results, official docs, CLAUDE.md sections)
+   - If you cannot articulate a clear rule violation, DO NOT report it
+
+2. **Evidence Check**: Do you have CONCRETE proof?
+   - **Code Evidence**: Exact code snippet showing the violation
+   - **Compiler Evidence**: TypeScript error message from Step 1.5
+   - **Documentation Evidence**: Quote from context7 or official documentation
+   - **Dependency Evidence**: Trace path from Step 2.5 showing type mismatch
+
+3. **Confidence Threshold**:
+   - ✅ Report: You can provide BOTH rationale AND evidence
+   - ❌ Do NOT Report: Missing rationale OR missing evidence OR uncertainty exists
+
+#### Required Fields
+See `.claude/skills/review-report/SKILL.md` for field definitions.
+
+#### ⚠️ Self-Review Before Report Generation
+
+Before finalizing the report, perform a second pass:
+1. Review each finding and ask: "Is my rationale specific and verifiable?"
+2. Ask: "Would another developer understand exactly what's wrong based on my evidence?"
+3. Remove any finding where the answer to either question is "No"
+
 ### Step 4: Report Generation
 
-**Must** read the `.claude/skills/review-report/SKILL.md` file using the Read tool to check report generation guidelines.
+**⚠️ MANDATORY**: Read `.claude/skills/review-report/SKILL.md` and follow its procedure exactly.
 
-Pre-report save checklist:
-1. Check if `docs/reports/code-review` directory exists
-2. Check naming conventions of existing report files (`.md` format)
-3. Maintain consistency with existing reports
-
-Report must include:
-- Review date and scope
-- List of discovered suggestions (classified by severity)
-- Detailed description and location of each suggestion
-- Recommended fixes
-- Overall code analysis score/grade
+Key requirements:
+1. **MUST** use `generate_report.py` script with `--output docs/reports/code-review`
+2. **Even if NO issues found**, run script with `--issues '[]'`
+3. **DO NOT** write markdown files directly or create custom formats
 
 ## Severity Classification Criteria
 
