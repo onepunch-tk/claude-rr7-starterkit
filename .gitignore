@@ -191,4 +191,10 @@ $RECYCLE.BIN/
 
 *.tsbuildinfo
 
+# gcp
+service-account.json
+
+#mcp
+.mcp.json
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,visualstudiocode,jetbrains+all
