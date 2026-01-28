@@ -29,6 +29,9 @@ docs/
 .idea
 
 # 테스트 및 커버리지
+tests/
+__tests__/
+vitest.config.ts
 coverage/
 *.test.ts
 *.spec.ts
