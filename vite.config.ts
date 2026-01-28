@@ -1,3 +1,6 @@
+/// <reference types="vitest/config"/>
+import { defineConfig } from "vite";
+
 /**
  * Vite 설정 - 플랫폼별 조건부 로드
  *
@@ -7,9 +10,11 @@
  */
 const platform = process.env.PLATFORM || "cloudflare";
 
-const config =
+const platformConfig =
 	platform === "node"
 		? (await import("./vite.config.node")).default
 		: (await import("./vite.config.cloudflare")).default;
 
-export default config;
+export default defineConfig({
+	...platformConfig,
+});
