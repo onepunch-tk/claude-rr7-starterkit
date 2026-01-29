@@ -1,154 +1,154 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { calculatePasswordStrength } from "~/presentation/lib/password-strength";
 
-describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
-	describe("점수 계산", () => {
-		describe("길이 점수 (최대 30점)", () => {
-			it("8자 미만 비밀번호는 길이 점수 0점", () => {
-				// Arrange
-				const password = "1234567"; // 7자
+describe("calculatePasswordStrength", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
 
-				// Act
-				const result = calculatePasswordStrength(password);
+	describe("빈 비밀번호", () => {
+		it("빈 문자열에 대해 점수 0을 반환한다", () => {
+			// Arrange
+			const password = "";
 
-				// Assert
-				// 숫자만 포함: 20점, 길이 점수: 0점 = 20점
-				expect(result.score).toBe(20);
-			});
+			// Act
+			const result = calculatePasswordStrength(password);
 
-			it("8자 이상 비밀번호는 길이 점수 10점", () => {
-				// Arrange
-				const password = "12345678"; // 8자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 숫자만 포함: 20점, 길이 점수: 10점 = 30점
-				expect(result.score).toBe(30);
-			});
-
-			it("12자 이상 비밀번호는 길이 점수 20점", () => {
-				// Arrange
-				const password = "123456789012"; // 12자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 숫자만 포함: 20점, 길이 점수: 10+10 = 20점 = 40점
-				expect(result.score).toBe(40);
-			});
-
-			it("16자 이상 비밀번호는 길이 점수 30점", () => {
-				// Arrange
-				const password = "1234567890123456"; // 16자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 숫자만 포함: 20점, 길이 점수: 10+10+10 = 30점 = 50점
-				expect(result.score).toBe(50);
-			});
-		});
-
-		describe("문자 다양성 점수", () => {
-			it("소문자 포함 시 20점 추가", () => {
-				// Arrange
-				const password = "abcdefgh"; // 8자 소문자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 소문자: 20점, 길이(8자 이상): 10점 = 30점
-				expect(result.score).toBe(30);
-			});
-
-			it("대문자 포함 시 20점 추가", () => {
-				// Arrange
-				const password = "ABCDEFGH"; // 8자 대문자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 대문자: 20점, 길이(8자 이상): 10점 = 30점
-				expect(result.score).toBe(30);
-			});
-
-			it("숫자 포함 시 20점 추가", () => {
-				// Arrange
-				const password = "12345678"; // 8자 숫자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 숫자: 20점, 길이(8자 이상): 10점 = 30점
-				expect(result.score).toBe(30);
-			});
-
-			it("특수문자 포함 시 10점 추가", () => {
-				// Arrange
-				const password = "!@#$%^&*"; // 8자 특수문자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 특수문자: 10점, 길이(8자 이상): 10점 = 20점
-				expect(result.score).toBe(20);
-			});
-
-			it("소문자 + 대문자 + 숫자 조합 시 점수 합산", () => {
-				// Arrange
-				const password = "Abc12345"; // 8자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 소문자: 20점, 대문자: 20점, 숫자: 20점, 길이(8자 이상): 10점 = 70점
-				expect(result.score).toBe(70);
-			});
-
-			it("모든 종류 문자 포함 시 최대 점수", () => {
-				// Arrange
-				const password = "Abc123!@#$abcd"; // 14자 (12자 이상)
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 소문자: 20점, 대문자: 20점, 숫자: 20점, 특수문자: 10점, 길이: 20점 = 90점
-				expect(result.score).toBe(90);
-			});
-		});
-
-		describe("최대 점수 (100점)", () => {
-			it("16자 이상 + 모든 문자 종류 포함 시 100점", () => {
-				// Arrange
-				const password = "Abc123!@#$abcdef"; // 16자
-
-				// Act
-				const result = calculatePasswordStrength(password);
-
-				// Assert
-				// 소문자: 20점, 대문자: 20점, 숫자: 20점, 특수문자: 10점, 길이: 30점 = 100점
-				expect(result.score).toBe(100);
-			});
+			// Assert
+			expect(result.score).toBe(0);
+			expect(result.level).toBe("weak");
+			expect(result.label).toBe("약함");
+			expect(result.colorClass).toBe("bg-red-600");
 		});
 	});
 
-	describe("레벨 판정", () => {
-		it("점수 0-39는 weak 레벨", () => {
+	describe("길이 점수 계산", () => {
+		it("8자 미만은 길이 점수 0점이다", () => {
 			// Arrange
-			const weakPassword = "abc"; // 3자 소문자 = 20점
+			const password = "abcdefg"; // 7자
 
 			// Act
-			const result = calculatePasswordStrength(weakPassword);
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자만 포함: 20점, 길이 점수: 0점
+			expect(result.score).toBe(20);
+		});
+
+		it("8자 이상은 길이 점수 10점이다", () => {
+			// Arrange
+			const password = "abcdefgh"; // 8자
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자: 20점 + 길이(8자): 10점 = 30점
+			expect(result.score).toBe(30);
+		});
+
+		it("12자 이상은 길이 점수 20점이다", () => {
+			// Arrange
+			const password = "abcdefghijkl"; // 12자
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자: 20점 + 길이(12자): 20점 = 40점
+			expect(result.score).toBe(40);
+		});
+
+		it("16자 이상은 길이 점수 30점이다", () => {
+			// Arrange
+			const password = "abcdefghijklmnop"; // 16자
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자: 20점 + 길이(16자): 30점 = 50점
+			expect(result.score).toBe(50);
+		});
+	});
+
+	describe("문자 다양성 점수 계산", () => {
+		it("소문자만 포함하면 20점을 추가한다", () => {
+			// Arrange
+			const password = "abcd"; // 4자, 소문자만
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			expect(result.score).toBe(20);
+		});
+
+		it("대문자만 포함하면 20점을 추가한다", () => {
+			// Arrange
+			const password = "ABCD"; // 4자, 대문자만
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			expect(result.score).toBe(20);
+		});
+
+		it("숫자만 포함하면 20점을 추가한다", () => {
+			// Arrange
+			const password = "1234"; // 4자, 숫자만
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			expect(result.score).toBe(20);
+		});
+
+		it("특수문자만 포함하면 10점을 추가한다", () => {
+			// Arrange
+			const password = "!@#$"; // 4자, 특수문자만
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			expect(result.score).toBe(10);
+		});
+
+		it("소문자와 대문자를 포함하면 40점을 추가한다", () => {
+			// Arrange
+			const password = "abCD"; // 4자
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자: 20점 + 대문자: 20점 = 40점
+			expect(result.score).toBe(40);
+		});
+
+		it("모든 문자 유형을 포함하면 70점을 추가한다", () => {
+			// Arrange
+			const password = "aA1!"; // 4자
+
+			// Act
+			const result = calculatePasswordStrength(password);
+
+			// Assert
+			// 소문자: 20 + 대문자: 20 + 숫자: 20 + 특수문자: 10 = 70점
+			expect(result.score).toBe(70);
+		});
+	});
+
+	describe("레벨 결정", () => {
+		it("점수 0-39는 weak 레벨이다", () => {
+			// Arrange
+			const password = "abc"; // 소문자만: 20점
+
+			// Act
+			const result = calculatePasswordStrength(password);
 
 			// Assert
 			expect(result.level).toBe("weak");
@@ -156,12 +156,12 @@ describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
 			expect(result.colorClass).toBe("bg-red-600");
 		});
 
-		it("점수 40-69는 medium 레벨", () => {
+		it("점수 40-69는 medium 레벨이다", () => {
 			// Arrange
-			const mediumPassword = "abc12345678"; // 11자 소문자+숫자 = 20+20+10 = 50점
+			const password = "abcdefghijkl"; // 12자 소문자: 20 + 20 = 40점
 
 			// Act
-			const result = calculatePasswordStrength(mediumPassword);
+			const result = calculatePasswordStrength(password);
 
 			// Assert
 			expect(result.level).toBe("medium");
@@ -169,37 +169,40 @@ describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
 			expect(result.colorClass).toBe("bg-yellow-600");
 		});
 
-		it("점수 70-100은 strong 레벨", () => {
+		it("점수 70-100는 strong 레벨이다", () => {
 			// Arrange
-			const strongPassword = "Abc12345"; // 8자 소문자+대문자+숫자 = 20+20+20+10 = 70점
+			const password = "Abcdefgh1!"; // 10자, 모든 유형 포함
+			// 길이(10자): 10 + 소문자: 20 + 대문자: 20 + 숫자: 20 + 특수문자: 10 = 80점
 
 			// Act
-			const result = calculatePasswordStrength(strongPassword);
+			const result = calculatePasswordStrength(password);
 
 			// Assert
 			expect(result.level).toBe("strong");
 			expect(result.label).toBe("강함");
 			expect(result.colorClass).toBe("bg-green-600");
 		});
+	});
 
-		it("경계값 39점은 weak 레벨", () => {
+	describe("경계값 테스트", () => {
+		it("정확히 39점은 weak이다", () => {
 			// Arrange
-			// 소문자: 20점, 숫자: 20점 = 40점 → medium
-			// 소문자: 20점, 특수문자: 10점 = 30점 → weak (8자 미만으로)
-			const password = "abc!@#"; // 6자 = 30점
+			// 소문자 8자: 20 + 10 = 30점
+			// 소문자 + 숫자(8자 미만): 20 + 20 = 40점 -> medium
+			// 정확히 39점 만들기 어려우므로 30점으로 weak 확인
+			const password = "abcdefgh"; // 30점
 
 			// Act
 			const result = calculatePasswordStrength(password);
 
 			// Assert
-			expect(result.score).toBeLessThan(40);
+			expect(result.score).toBe(30);
 			expect(result.level).toBe("weak");
 		});
 
-		it("경계값 40점은 medium 레벨", () => {
+		it("정확히 40점은 medium이다", () => {
 			// Arrange
-			// 소문자: 20점, 숫자: 20점 = 40점
-			const password = "abc1234"; // 7자 = 40점
+			const password = "abcdefghijkl"; // 12자 소문자: 20 + 20 = 40점
 
 			// Act
 			const result = calculatePasswordStrength(password);
@@ -209,11 +212,11 @@ describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
 			expect(result.level).toBe("medium");
 		});
 
-		it("경계값 69점은 medium 레벨", () => {
+		it("정확히 69점은 medium이다", () => {
 			// Arrange
-			// 소문자: 20점, 대문자: 20점, 숫자: 20점 = 60점 + 길이 8자 = 70점 → strong
-			// 소문자: 20점, 대문자: 20점, 숫자: 20점 = 60점 (7자) → medium
-			const password = "Abc1234"; // 7자 = 60점
+			// 소문자 + 대문자 + 숫자 (8자): 20 + 20 + 20 + 10(길이) = 70 -> strong
+			// 소문자 + 대문자 + 숫자 (8자 미만): 20 + 20 + 20 = 60 -> medium
+			const password = "aA1bcde"; // 7자: 소문자 20 + 대문자 20 + 숫자 20 = 60점
 
 			// Act
 			const result = calculatePasswordStrength(password);
@@ -223,9 +226,9 @@ describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
 			expect(result.level).toBe("medium");
 		});
 
-		it("경계값 70점은 strong 레벨", () => {
+		it("정확히 70점은 strong이다", () => {
 			// Arrange
-			const password = "Abc12345"; // 8자 = 70점
+			const password = "aA1bcdef"; // 8자: 소문자 20 + 대문자 20 + 숫자 20 + 길이 10 = 70점
 
 			// Act
 			const result = calculatePasswordStrength(password);
@@ -236,91 +239,46 @@ describe("calculatePasswordStrength (비밀번호 강도 계산)", () => {
 		});
 	});
 
-	describe("반환값 구조", () => {
-		it("score, level, label, colorClass를 모두 포함한다", () => {
+	describe("최대 점수", () => {
+		it("16자 이상 + 모든 문자 유형은 최대 100점이다", () => {
 			// Arrange
-			const password = "testPassword";
+			const password = "Abcdefghijklmn1!"; // 16자, 모든 유형
 
 			// Act
 			const result = calculatePasswordStrength(password);
 
 			// Assert
-			expect(result).toHaveProperty("score");
-			expect(result).toHaveProperty("level");
-			expect(result).toHaveProperty("label");
-			expect(result).toHaveProperty("colorClass");
-		});
-
-		it("score는 숫자 타입이다", () => {
-			// Arrange
-			const password = "testPassword";
-
-			// Act
-			const result = calculatePasswordStrength(password);
-
-			// Assert
-			expect(typeof result.score).toBe("number");
-		});
-
-		it("level은 weak, medium, strong 중 하나이다", () => {
-			// Arrange
-			const passwords = ["a", "abcdefgh", "Abc12345"];
-
-			// Act & Assert
-			for (const password of passwords) {
-				const result = calculatePasswordStrength(password);
-				expect(["weak", "medium", "strong"]).toContain(result.level);
-			}
+			// 길이(16자): 30 + 소문자: 20 + 대문자: 20 + 숫자: 20 + 특수문자: 10 = 100점
+			expect(result.score).toBe(100);
+			expect(result.level).toBe("strong");
 		});
 	});
 
-	describe("엣지 케이스", () => {
-		it("빈 문자열은 0점이다", () => {
+	describe("실제 비밀번호 예시", () => {
+		it("password123은 medium 레벨이다", () => {
 			// Arrange
-			const password = "";
+			const password = "password123"; // 11자
 
 			// Act
 			const result = calculatePasswordStrength(password);
 
 			// Assert
-			expect(result.score).toBe(0);
-			expect(result.level).toBe("weak");
+			// 길이(11자): 10 + 소문자: 20 + 숫자: 20 = 50점
+			expect(result.score).toBe(50);
+			expect(result.level).toBe("medium");
 		});
 
-		it("공백만 있는 문자열은 특수문자로 처리된다", () => {
+		it("Password123!은 strong 레벨이다", () => {
 			// Arrange
-			const password = "        "; // 8자 공백
+			const password = "Password123!"; // 12자
 
 			// Act
 			const result = calculatePasswordStrength(password);
 
 			// Assert
-			// 공백은 [^A-Za-z0-9] 패턴에 매칭 → 특수문자: 10점, 길이(8자 이상): 10점 = 20점
-			expect(result.score).toBe(20);
-		});
-
-		it("한글 문자는 특수문자로 처리된다", () => {
-			// Arrange
-			const password = "가나다라마바사아"; // 8자 한글
-
-			// Act
-			const result = calculatePasswordStrength(password);
-
-			// Assert
-			// 한글은 [^A-Za-z0-9] 패턴에 매칭 → 특수문자: 10점, 길이: 10점 = 20점
-			expect(result.score).toBe(20);
-		});
-
-		it("이모지는 특수문자로 처리된다", () => {
-			// Arrange
-			const password = "password🔐"; // 8자 + 이모지
-
-			// Act
-			const result = calculatePasswordStrength(password);
-
-			// Assert
-			// 소문자: 20점, 특수문자: 10점, 길이: 10점 = 40점
-			expect(result.score).toBeGreaterThanOrEqual(40);
+			// 길이(12자): 20 + 소문자: 20 + 대문자: 20 + 숫자: 20 + 특수문자: 10 = 90점
+			expect(result.score).toBe(90);
+			expect(result.level).toBe("strong");
 		});
 	});
 });

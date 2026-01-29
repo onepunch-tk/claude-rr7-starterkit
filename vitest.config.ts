@@ -34,6 +34,7 @@ export default defineConfig({
 			reporter: ["text", "json", "html"],
 			reportsDirectory: "./coverage",
 			include: [
+				"adapters/**/*.ts",
 				"app/domain/**/*.ts",
 				"app/application/**/*.ts",
 				"app/presentation/**/*.{ts,tsx}",

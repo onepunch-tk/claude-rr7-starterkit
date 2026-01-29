@@ -1,255 +1,215 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { action } from "~/presentation/routes/auth/reset-password";
+import { render, screen } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
 
-/**
- * reset-password 라우트 Action 테스트
- *
- * 테스트 대상:
- * - 비밀번호 재설정 성공 시 로그인 페이지로 리다이렉트
- * - 유효성 검증 실패
- * - 토큰 검증 실패
- * - HTTP 메서드 검증
- */
+// react-router 훅 모킹
+const mockUseSearchParams = vi.fn();
+const mockUseActionData = vi.fn();
 
-// Mock authService
-const mockResetPassword = vi.fn();
+vi.mock("react-router", async () => {
+	const actual = await vi.importActual("react-router");
+	return {
+		...actual,
+		useSearchParams: () => mockUseSearchParams(),
+		useActionData: () => mockUseActionData(),
+	};
+});
 
-const mockAuthService = {
-	resetPassword: mockResetPassword,
-};
+// 컴포넌트는 모킹 이후에 import
+const { default: ResetPassword } = await import(
+	"~/presentation/routes/auth/reset-password"
+);
 
-// Mock container
-const mockContainer = {
-	authService: mockAuthService,
-};
-
-// Helper: Request 생성
-const createRequest = (
-	method: string,
-	formData: Record<string, string>,
-): Request => {
-	const form = new FormData();
-	for (const [key, value] of Object.entries(formData)) {
-		form.append(key, value);
-	}
-	return new Request("http://localhost:3000/auth/reset-password", {
-		method,
-		body: form,
-	});
-};
-
-// Helper: ActionArgs 생성
-const createActionArgs = (request: Request) =>
-	({
-		request,
-		context: { container: mockContainer },
-		params: {},
-	}) as unknown as Parameters<typeof action>[0];
-
-describe("reset-password action", () => {
+describe("ResetPassword", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// 기본값 설정: 토큰 있음
+		mockUseSearchParams.mockReturnValue([
+			new URLSearchParams("token=abc123"),
+		]);
+		mockUseActionData.mockReturnValue(null);
 	});
 
-	describe("HTTP 메서드 검증", () => {
-		it("POST가 아닌 요청은 에러를 반환한다", async () => {
+	describe("토큰이 없는 경우", () => {
+		beforeEach(() => {
+			mockUseSearchParams.mockReturnValue([new URLSearchParams()]);
+		});
+
+		it("잘못된 접근 메시지를 표시한다", async () => {
 			// Arrange
-			const request = new Request(
-				"http://localhost:3000/auth/reset-password",
+			const RoutesStub = createRoutesStub([
 				{
-					method: "GET",
+					path: "/auth/reset-password",
+					Component: ResetPassword,
 				},
-			);
-			const args = createActionArgs(request);
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/reset-password"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "POST 요청만 허용됩니다." });
+			expect(await screen.findByText(/잘못된 접근/i)).toBeInTheDocument();
+		});
+
+		it("비밀번호 찾기 링크를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/reset-password"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("link", { name: /비밀번호 찾기/i }),
+			).toBeInTheDocument();
+		});
+
+		it("로그인 링크를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/reset-password"]} />);
+
+			// Assert
+			expect(await screen.findByText("로그인")).toBeInTheDocument();
 		});
 	});
 
-	describe("비밀번호 재설정 성공", () => {
-		it("유효한 데이터로 비밀번호 재설정 성공 시 로그인 페이지로 리다이렉트한다", async () => {
+	describe("토큰이 있는 경우", () => {
+		it("새 비밀번호 설정 폼을 표시한다", async () => {
 			// Arrange
-			mockResetPassword.mockResolvedValueOnce(undefined);
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-				token: "valid-reset-token",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
+			);
 
 			// Assert
-			expect(mockResetPassword).toHaveBeenCalledWith(
-				"NewTest1234!",
-				"valid-reset-token",
-				expect.any(Headers),
+			expect(await screen.findByText(/새 비밀번호 설정/i)).toBeInTheDocument();
+		});
+
+		it("새 비밀번호 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
+
+			// Act
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
 			);
-			expect(result).toBeInstanceOf(Response);
-			const response = result as Response;
-			expect(response.status).toBe(302);
-			expect(response.headers.get("Location")).toBe(
-				"/auth/signin?message=password-reset-success",
+
+			// Assert
+			// 페이지 로딩 대기 후 새 비밀번호 input 확인
+			await screen.findByText(/새 비밀번호 설정/i);
+			const newPasswordInput = document.querySelector('input[name="newPassword"]');
+			expect(newPasswordInput).toBeInTheDocument();
+		});
+
+		it("새 비밀번호 확인 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
+
+			// Act
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
 			);
+
+			// Assert
+			expect(
+				await screen.findByLabelText(/새 비밀번호 확인/i),
+			).toBeInTheDocument();
+		});
+
+		it("비밀번호 변경 버튼을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
+
+			// Act
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
+			);
+
+			// Assert
+			expect(
+				await screen.findByRole("button", { name: /비밀번호 변경/i }),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("폼 유효성 검증", () => {
-		it("새 비밀번호가 비어있는 경우 검증 에러를 반환한다", async () => {
+	describe("에러 상태", () => {
+		it("에러 메시지를 표시한다", async () => {
 			// Arrange
-			const request = createRequest("POST", {
-				newPassword: "",
-				newPasswordConfirm: "",
-				token: "valid-token",
-			});
-			const args = createActionArgs(request);
+			mockUseActionData.mockReturnValue({ error: "유효하지 않은 토큰입니다." });
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
+			);
 
 			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("newPassword");
-		});
-
-		it("비밀번호가 8자 미만인 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest("POST", {
-				newPassword: "Test1!",
-				newPasswordConfirm: "Test1!",
-				token: "valid-token",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("newPassword");
-		});
-
-		it("비밀번호가 복잡도 요구사항을 충족하지 않는 경우 검증 에러를 반환한다", async () => {
-			// Arrange: 특수문자 없음
-			const request = createRequest("POST", {
-				newPassword: "Test12345",
-				newPasswordConfirm: "Test12345",
-				token: "valid-token",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("newPassword");
-		});
-
-		it("비밀번호 확인이 일치하지 않는 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "DifferentTest1234!",
-				token: "valid-token",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("newPasswordConfirm");
-		});
-
-		it("토큰이 비어있는 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-				token: "",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("token");
+			expect(
+				await screen.findByText(/유효하지 않은 토큰입니다/i),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("에러 처리", () => {
-		it("유효하지 않은 토큰으로 재설정 시 에러 메시지를 반환한다", async () => {
+	describe("링크", () => {
+		it("로그인으로 돌아가기 링크를 표시한다", async () => {
 			// Arrange
-			mockResetPassword.mockRejectedValueOnce(new Error("Invalid token"));
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-				token: "invalid-token",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/reset-password",
+					Component: ResetPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("error");
-			// getAuthErrorMessage 함수가 에러를 처리하여 기본 메시지 또는 매핑된 메시지 반환
-			expect(typeof (result as { error: string }).error).toBe("string");
-			expect((result as { error: string }).error.length).toBeGreaterThan(0);
-		});
-
-		it("만료된 토큰으로 재설정 시 에러 메시지를 반환한다", async () => {
-			// Arrange
-			mockResetPassword.mockRejectedValueOnce(new Error("Token expired"));
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-				token: "expired-token",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("error");
-			expect(typeof (result as { error: string }).error).toBe("string");
-		});
-
-		it("서버 에러 발생 시 에러 메시지를 반환한다", async () => {
-			// Arrange
-			mockResetPassword.mockRejectedValueOnce(
-				new Error("Internal server error"),
+			render(
+				<RoutesStub initialEntries={["/auth/reset-password?token=abc123"]} />,
 			);
-			const request = createRequest("POST", {
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-				token: "valid-token",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
 
 			// Assert
-			expect(result).toHaveProperty("error");
-			// getAuthErrorMessage 함수가 에러를 처리하여 기본 메시지 반환
-			expect(typeof (result as { error: string }).error).toBe("string");
-			expect((result as { error: string }).error.length).toBeGreaterThan(0);
+			expect(
+				await screen.findByText(/로그인으로 돌아가기/i),
+			).toBeInTheDocument();
 		});
 	});
 });

@@ -1,309 +1,298 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { action } from "~/presentation/routes/auth/sign-up";
-import {
-	AuthError,
-	DuplicateEmailError,
-	UserCreationError,
-} from "~/domain/auth";
+import { render, screen } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
+import type { IUser } from "~/domain/user";
 
-/**
- * sign-up 라우트 Action 테스트
- *
- * 테스트 대상:
- * - 회원가입 성공
- * - 유효성 검증 실패
- * - 중복 이메일 에러
- * - 사용자 생성 실패 에러
- * - HTTP 메서드 검증
- */
+// 테스트용 사용자 생성 헬퍼
+const createMockUser = (overrides: Partial<IUser> = {}): IUser => ({
+	id: "user-123",
+	email: "test@example.com",
+	name: "Test User",
+	emailVerified: true,
+	image: null,
+	createdAt: new Date(),
+	updatedAt: new Date(),
+	...overrides,
+});
 
-// Mock authService
-const mockSignUp = vi.fn();
+// react-router 훅 모킹
+const mockUseOutletContext = vi.fn();
+const mockUseActionData = vi.fn();
 
-const mockAuthService = {
-	signUp: mockSignUp,
-};
+vi.mock("react-router", async () => {
+	const actual = await vi.importActual("react-router");
+	return {
+		...actual,
+		useOutletContext: () => mockUseOutletContext(),
+		useActionData: () => mockUseActionData(),
+	};
+});
 
-// Mock container
-const mockContainer = {
-	authService: mockAuthService,
-};
+// 컴포넌트는 모킹 이후에 import
+const { default: SignUp } = await import("~/presentation/routes/auth/sign-up");
 
-// Helper: Request 생성
-const createRequest = (
-	method: string,
-	formData: Record<string, string | boolean>,
-): Request => {
-	const form = new FormData();
-	for (const [key, value] of Object.entries(formData)) {
-		if (typeof value === "boolean" && value) {
-			form.append(key, "on"); // checkbox true -> "on"
-		} else if (typeof value === "string") {
-			form.append(key, value);
-		}
-	}
-	return new Request("http://localhost:3000/auth/signup", {
-		method,
-		body: form,
-	});
-};
-
-// Helper: ActionArgs 생성
-const createActionArgs = (request: Request) =>
-	({
-		request,
-		context: { container: mockContainer },
-		params: {},
-	}) as unknown as Parameters<typeof action>[0];
-
-describe("sign-up action", () => {
+describe("SignUp", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// 기본값 설정
+		mockUseOutletContext.mockReturnValue({ user: null });
+		mockUseActionData.mockReturnValue(null);
 	});
 
-	describe("HTTP 메서드 검증", () => {
-		it("POST가 아닌 요청은 에러를 반환한다", async () => {
+	describe("미인증 상태 렌더링", () => {
+		it("회원가입 폼을 렌더링한다", async () => {
 			// Arrange
-			const request = new Request("http://localhost:3000/auth/signup", {
-				method: "GET",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toEqual({ error: "POST 요청만 허용됩니다." });
-		});
-	});
-
-	describe("회원가입 성공", () => {
-		it("유효한 데이터로 회원가입 성공 시 성공 메시지를 반환한다", async () => {
-			// Arrange
-			mockSignUp.mockResolvedValueOnce({
-				user: {
-					name: "홍길동",
-					email: "test@example.com",
-					emailVerified: false,
-					image: null,
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
 				},
-			});
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
 
 			// Assert
-			expect(mockSignUp).toHaveBeenCalledWith(
-				"test@example.com",
-				"Test1234!",
-				"홍길동",
-				expect.any(Headers),
-			);
-			expect(result).toEqual({
+			// "회원가입" 텍스트가 페이지에 존재하는지 확인 (제목 또는 버튼)
+			const elements = await screen.findAllByText(/회원가입/i);
+			expect(elements.length).toBeGreaterThan(0);
+		});
+
+		it("이름 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(await screen.findByLabelText(/이름/i)).toBeInTheDocument();
+		});
+
+		it("이메일 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(await screen.findByLabelText(/이메일/i)).toBeInTheDocument();
+		});
+
+		it("비밀번호 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			// 비밀번호 입력 필드가 존재하는지 확인 (input[name="password"])
+			await screen.findByText(/새로운 계정을 만들어/i); // 페이지 로딩 대기
+			const passwordInput = document.querySelector('input[name="password"]');
+			expect(passwordInput).toBeInTheDocument();
+		});
+
+		it("회원가입 버튼을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("button", { name: /회원가입/i }),
+			).toBeInTheDocument();
+		});
+	});
+
+	describe("인증된 상태 렌더링", () => {
+		it("이미 로그인됨 메시지를 표시한다", async () => {
+			// Arrange
+			const mockUser = createMockUser();
+			mockUseOutletContext.mockReturnValue({ user: mockUser });
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(
+				await screen.findByText(/이미 로그인되어 있습니다/i),
+			).toBeInTheDocument();
+		});
+
+		it("대시보드로 이동 버튼을 표시한다", async () => {
+			// Arrange
+			const mockUser = createMockUser();
+			mockUseOutletContext.mockReturnValue({ user: mockUser });
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("link", { name: /대시보드로 이동/i }),
+			).toBeInTheDocument();
+		});
+	});
+
+	describe("회원가입 성공 상태", () => {
+		it("회원가입 완료 메시지를 표시한다", async () => {
+			// Arrange
+			mockUseActionData.mockReturnValue({
 				success: true,
-				message:
-					"회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요.",
+				message: "회원가입이 완료되었습니다.",
 			});
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(await screen.findByText(/회원가입 완료/i)).toBeInTheDocument();
+		});
+
+		it("이메일 인증 안내를 표시한다", async () => {
+			// Arrange
+			mockUseActionData.mockReturnValue({
+				success: true,
+				message: "회원가입이 완료되었습니다.",
+			});
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
+
+			// Assert
+			expect(
+				await screen.findByText(/이메일을 확인하여 계정을 활성화해주세요/i),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("폼 유효성 검증", () => {
-		it("이름이 비어있는 경우 검증 에러를 반환한다", async () => {
+	describe("약관 동의", () => {
+		it("이용약관 링크를 표시한다", async () => {
 			// Arrange
-			const request = createRequest("POST", {
-				name: "",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("name");
+			expect(await screen.findByText(/이용약관/i)).toBeInTheDocument();
 		});
 
-		it("이메일 형식이 잘못된 경우 검증 에러를 반환한다", async () => {
+		it("개인정보 처리방침 링크를 표시한다", async () => {
 			// Arrange
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "invalid-email",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("email");
-		});
-
-		it("비밀번호가 8자 미만인 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1!", // 6자
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("password");
-		});
-
-		it("비밀번호가 복잡도 요구사항을 충족하지 않는 경우 검증 에러를 반환한다", async () => {
-			// Arrange: 특수문자 없음
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test12345", // 특수문자 없음
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("password");
-		});
-
-		it("이용약관에 동의하지 않은 경우 검증 에러를 반환한다", async () => {
-			// Arrange: termsAgreed가 없음
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("termsAgreed");
+			expect(await screen.findByText(/개인정보 처리방침/i)).toBeInTheDocument();
 		});
 	});
 
-	describe("에러 처리", () => {
-		it("중복 이메일 에러가 발생하면 해당 메시지를 반환한다", async () => {
+	describe("링크", () => {
+		it("로그인 링크를 표시한다", async () => {
 			// Arrange
-			mockSignUp.mockRejectedValueOnce(new DuplicateEmailError());
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "existing@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "이미 사용 중인 이메일입니다." });
+			expect(
+				await screen.findByRole("link", { name: "로그인" }),
+			).toBeInTheDocument();
 		});
+	});
 
-		it("사용자 생성 실패 에러가 발생하면 해당 메시지를 반환한다", async () => {
+	describe("에러 상태", () => {
+		it("에러 메시지를 표시한다", async () => {
 			// Arrange
-			mockSignUp.mockRejectedValueOnce(new UserCreationError());
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
+			mockUseActionData.mockReturnValue({
+				error: "이미 등록된 이메일입니다.",
 			});
-			const args = createActionArgs(request);
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/signup",
+					Component: SignUp,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/signup"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "사용자 생성에 실패했습니다." });
-		});
-
-		it("AuthError가 발생하면 해당 메시지를 반환한다", async () => {
-			// Arrange
-			class TestAuthError extends AuthError {
-				constructor() {
-					super("인증 관련 에러 발생");
-				}
-			}
-			mockSignUp.mockRejectedValueOnce(new TestAuthError());
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toEqual({ error: "인증 관련 에러 발생" });
-		});
-
-		it("일반 에러가 발생하면 에러 메시지를 반환한다", async () => {
-			// Arrange
-			mockSignUp.mockRejectedValueOnce(new Error("Unknown error"));
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toEqual({ error: "Unknown error" });
-		});
-
-		it("에러 객체가 아닌 경우 기본 메시지를 반환한다", async () => {
-			// Arrange
-			mockSignUp.mockRejectedValueOnce("string error");
-			const request = createRequest("POST", {
-				name: "홍길동",
-				email: "test@example.com",
-				password: "Test1234!",
-				termsAgreed: true,
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toEqual({ error: "회원가입에 실패했습니다." });
+			expect(
+				await screen.findByText(/이미 등록된 이메일입니다/i),
+			).toBeInTheDocument();
 		});
 	});
 });

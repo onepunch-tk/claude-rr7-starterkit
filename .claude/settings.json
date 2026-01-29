@@ -2,7 +2,7 @@
 	"enabledPlugins": {
 		"typescript-lsp@claude-plugins-official": true
 	},
-	"evn": {
+	"env": {
 		"CLAUDE_CODE_TASK_LIST_ID": "cc_rr7_starterkit"
 	}
 }

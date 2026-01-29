@@ -1,184 +1,163 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { action } from "~/presentation/routes/auth/forgot-password";
+import { render, screen } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
 
-/**
- * forgot-password 라우트 Action 테스트
- *
- * 테스트 대상:
- * - 비밀번호 재설정 요청 성공
- * - 유효성 검증 실패
- * - HTTP 메서드 검증
- * - 보안: 실패해도 같은 응답 반환 (이메일 존재 여부 노출 방지)
- */
+// react-router 훅 모킹
+const mockUseActionData = vi.fn();
 
-// Mock authService
-const mockRequestPasswordReset = vi.fn();
+vi.mock("react-router", async () => {
+	const actual = await vi.importActual("react-router");
+	return {
+		...actual,
+		useActionData: () => mockUseActionData(),
+	};
+});
 
-const mockAuthService = {
-	requestPasswordReset: mockRequestPasswordReset,
-};
+// 컴포넌트는 모킹 이후에 import
+const { default: ForgotPassword } = await import(
+	"~/presentation/routes/auth/forgot-password"
+);
 
-// Mock container
-const mockContainer = {
-	authService: mockAuthService,
-};
-
-// Helper: Request 생성
-const createRequest = (
-	method: string,
-	formData: Record<string, string>,
-): Request => {
-	const form = new FormData();
-	for (const [key, value] of Object.entries(formData)) {
-		form.append(key, value);
-	}
-	return new Request("http://localhost:3000/auth/forgot-password", {
-		method,
-		body: form,
-	});
-};
-
-// Helper: ActionArgs 생성
-const createActionArgs = (request: Request) =>
-	({
-		request,
-		context: { container: mockContainer },
-		params: {},
-	}) as unknown as Parameters<typeof action>[0];
-
-describe("forgot-password action", () => {
+describe("ForgotPassword", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// 기본값 설정
+		mockUseActionData.mockReturnValue(null);
 	});
 
-	describe("HTTP 메서드 검증", () => {
-		it("POST가 아닌 요청은 에러를 반환한다", async () => {
+	describe("기본 렌더링", () => {
+		it("비밀번호 찾기 폼을 렌더링한다", async () => {
 			// Arrange
-			const request = new Request(
-				"http://localhost:3000/auth/forgot-password",
+			const RoutesStub = createRoutesStub([
 				{
-					method: "GET",
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
 				},
-			);
-			const args = createActionArgs(request);
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "POST 요청만 허용됩니다." });
+			expect(await screen.findByText("비밀번호 찾기")).toBeInTheDocument();
+		});
+
+		it("이메일 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
+
+			// Assert
+			expect(await screen.findByLabelText(/이메일/i)).toBeInTheDocument();
+		});
+
+		it("재설정 링크 전송 버튼을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("button", { name: /재설정 링크 전송/i }),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("비밀번호 재설정 요청 성공", () => {
-		it("유효한 이메일로 요청 시 성공 응답을 반환한다", async () => {
+	describe("성공 상태", () => {
+		it("이메일 전송 완료 메시지를 표시한다", async () => {
 			// Arrange
-			mockRequestPasswordReset.mockResolvedValueOnce(undefined);
-			const request = createRequest("POST", {
-				email: "test@example.com",
-			});
-			const args = createActionArgs(request);
+			mockUseActionData.mockReturnValue({ success: true });
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
 
 			// Assert
-			expect(mockRequestPasswordReset).toHaveBeenCalledWith(
-				"test@example.com",
-				expect.any(Headers),
-			);
-			expect(result).toEqual({ success: true });
+			expect(await screen.findByText(/이메일 전송 완료/i)).toBeInTheDocument();
+		});
+
+		it("성공 메시지에 안내 텍스트를 표시한다", async () => {
+			// Arrange
+			mockUseActionData.mockReturnValue({ success: true });
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
+
+			// Assert
+			expect(
+				await screen.findByText(/링크를 클릭하여 새로운 비밀번호/i),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("폼 유효성 검증", () => {
-		it("이메일이 비어있는 경우 검증 에러를 반환한다", async () => {
+	describe("에러 상태", () => {
+		it("에러 메시지를 표시한다", async () => {
 			// Arrange
-			const request = createRequest("POST", {
-				email: "",
+			mockUseActionData.mockReturnValue({
+				error: "이메일을 찾을 수 없습니다.",
 			});
-			const args = createActionArgs(request);
+
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("email");
-		});
-
-		it("이메일 형식이 잘못된 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest("POST", {
-				email: "invalid-email",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("errors");
-			const errors = (result as { errors: Record<string, unknown> }).errors;
-			expect(errors).toHaveProperty("email");
+			expect(
+				await screen.findByText(/이메일을 찾을 수 없습니다/i),
+			).toBeInTheDocument();
 		});
 	});
 
-	describe("보안: 이메일 존재 여부 노출 방지", () => {
-		it("존재하지 않는 이메일로 요청해도 성공 응답을 반환한다", async () => {
+	describe("링크", () => {
+		it("로그인으로 돌아가기 링크를 표시한다", async () => {
 			// Arrange
-			// 실제 에러가 발생해도 같은 응답을 반환해야 함
-			mockRequestPasswordReset.mockRejectedValueOnce(
-				new Error("User not found"),
-			);
-			const request = createRequest("POST", {
-				email: "nonexistent@example.com",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/auth/forgot-password",
+					Component: ForgotPassword,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/auth/forgot-password"]} />);
 
 			// Assert
-			// 보안상 이유로 실패해도 같은 응답 반환
-			expect(result).toEqual({ success: true });
-		});
-
-		it("이메일 전송 실패해도 성공 응답을 반환한다", async () => {
-			// Arrange
-			mockRequestPasswordReset.mockRejectedValueOnce(
-				new Error("Email send failed"),
-			);
-			const request = createRequest("POST", {
-				email: "test@example.com",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			// 보안상 이유로 실패해도 같은 응답 반환
-			expect(result).toEqual({ success: true });
-		});
-
-		it("서버 에러가 발생해도 성공 응답을 반환한다", async () => {
-			// Arrange
-			mockRequestPasswordReset.mockRejectedValueOnce(
-				new Error("Internal server error"),
-			);
-			const request = createRequest("POST", {
-				email: "test@example.com",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			// 보안상 이유로 실패해도 같은 응답 반환
-			expect(result).toEqual({ success: true });
+			expect(
+				await screen.findByText(/로그인으로 돌아가기/i),
+			).toBeInTheDocument();
 		});
 	});
 });

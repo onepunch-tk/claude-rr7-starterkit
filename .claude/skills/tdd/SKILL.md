@@ -1,142 +1,138 @@
 ---
 name: tdd
-description: "TDD (Test-Driven Development) 규칙과 패턴. 사용 시점: (1) 유닛 테스트 작성, (2) 테스트 대상 결정, (3) TDD 사이클 따르기. Vitest/Jest를 사용하는 Expo, React Native, React Router, NestJS 지원."
+description: "TDD (Test-Driven Development) rules and patterns. Use when: (1) Writing unit tests, (2) Determining test targets, (3) Following TDD cycle. Supports Expo, React Native, React Router, NestJS using Vitest/Jest."
 ---
 
 # TDD Skill
 
-Node/TypeScript/React 프로젝트를 위한 TDD 규칙 및 패턴 정의.
-
-> **Note**: 이 문서는 **규칙과 지침**만 정의합니다. 구체적인 실행 로직과 코드 예제는 `unit-test-writer` 에이전트를 참조하세요.
+TDD rules and patterns for Node/TypeScript/React projects.
 
 ---
 
-## 테스트 대상 규칙
+## Test Target Rules
 
-### 반드시 테스트
+### Must Test
 
-| 패턴 | 설명 |
-|------|------|
-| `*.service.ts` | 서비스 함수 |
-| `*.helper.ts`, `*.util.ts` | 헬퍼/유틸리티 함수 |
-| `*.tsx` (컴포넌트) | React 컴포넌트 |
-| `loader`, `action` | 라우트 로더/액션 |
-| `*.schema.ts` | Zod 스키마 |
-| `use*.ts` | 커스텀 훅 |
+| Pattern | Description |
+|---------|-------------|
+| `*.service.ts` | Service functions |
+| `*.helper.ts`, `*.util.ts` | Helper/utility functions |
+| `*.tsx` (components) | React components |
+| `loader`, `action` | Route loaders/actions |
+| `*.schema.ts` | Zod schemas |
+| `use*.ts` | Custom hooks |
 
-### 테스트 제외
+### Exclude from Testing
 
-| 패턴 | 이유 |
-|------|------|
-| `*.d.ts` | 타입 선언만 포함 |
-| `**/types.ts`, `**/types/**` | 타입 정의만 포함 |
-| `**/*.port.ts` | 인터페이스 정의만 포함 |
-| `**/index.ts` | 배럴 파일 (재내보내기) |
-| `*.config.ts` | 설정 파일 |
-| `**/constants.ts`, `**/const.ts` | 정적 값만 포함 |
-| `**/components/ui/**` | shadcn/ui 자동 생성 |
-| `**/*.css`, `**/*.scss` | 스타일 파일 |
+| Pattern | Reason |
+|---------|--------|
+| `*.d.ts` | Type declarations only |
+| `**/types.ts`, `**/types/**` | Type definitions only |
+| `**/*.port.ts` | Interface definitions only |
+| `**/index.ts` | Barrel files (re-exports) |
+| `*.config.ts` | Configuration files |
+| `**/constants.ts`, `**/const.ts` | Static values only |
+| `**/components/ui/**` | shadcn/ui auto-generated |
+| `**/*.css`, `**/*.scss` | Style files |
 
 ---
 
-## 네이밍 규칙
+## Naming Convention
 
-소스 → 테스트 경로 매핑:
+Source → Test path mapping:
 
-| 소스 경로 | 테스트 경로 |
-|-----------|-------------|
+| Source Path | Test Path |
+|-------------|-----------|
 | `app/services/auth.service.ts` | `__tests__/services/auth.service.test.ts` |
 | `app/components/Button.tsx` | `__tests__/components/Button.test.tsx` |
 | `app/domain/user/user.schema.ts` | `__tests__/domain/user/user.schema.test.ts` |
-| `src/utils/format.ts` | `__tests__/utils/format.test.ts` |
 
-**패턴**: 루트 폴더를 `__tests__/`로 교체하고, 확장자 앞에 `.test` 추가.
+**Pattern**: Replace root folder with `__tests__/` and add `.test` before extension.
 
 ---
 
-## TDD 사이클
+## TDD Cycle
 
 ### Red → Green → Refactor
 
-```
-1. Red    - 실패하는 테스트 작성
-2. Green  - 테스트 통과하는 최소 코드 작성
-3. Refactor - 코드 개선 (테스트 유지)
-```
-
-### 사이클 상세
-
-**Phase 1: Red**
-- 기대 동작을 테스트로 정의
-- 테스트 실행 → 반드시 실패 확인
-
-**Phase 2: Green**
-- 테스트 통과하는 가장 단순한 코드 작성
-- 과도한 설계 금지
-
-**Phase 3: Refactor**
-- 중복 제거
-- 가독성 개선
-- 테스트 재실행 → 통과 확인
+1. **Red** - Write a failing test
+2. **Green** - Write minimal code to pass
+3. **Refactor** - Improve code (keep tests passing)
 
 ---
 
-## AAA 패턴
+## AAA Pattern
 
-모든 테스트는 AAA (Arrange-Act-Assert) 패턴을 따릅니다.
+All tests follow AAA (Arrange-Act-Assert) pattern:
 
-| 단계 | 역할 | 예시 |
-|------|------|------|
-| **Arrange** | 테스트 데이터 및 환경 준비 | 모킹, 입력값 생성 |
-| **Act** | 테스트 대상 실행 | 함수 호출, 이벤트 발생 |
-| **Assert** | 결과 검증 | expect 문 |
-
-```typescript
-it("시나리오 설명", () => {
-  // Arrange: 준비
-  // Act: 실행
-  // Assert: 검증
-});
-```
+| Phase | Role | Example |
+|-------|------|---------|
+| **Arrange** | Prepare test data and environment | Mocking, input creation |
+| **Act** | Execute test target | Function call, event trigger |
+| **Assert** | Verify results | expect statements |
 
 ---
 
-## 프레임워크별 테스트 환경
+## Framework Test Environment
 
-| 프레임워크 | 테스트 러너 | 주요 도구 | 비고 |
-|-----------|------------|----------|------|
-| **Expo** | Jest | jest-expo, @testing-library/react-native | Vitest 미지원 |
-| **React Native** | Jest | @testing-library/react-native | Vitest 미지원 |
-| **React Router v7** | Vitest/Jest | createRoutesStub, createMemoryRouter | Vitest 권장 |
-| **NestJS** | Jest | @nestjs/testing, Test.createTestingModule | Jest 기본 |
-
-### 테스트 러너 선택 기준
-
-- **Expo/React Native**: **Jest 전용** (네이티브 모듈 호환성)
-- **React Router v7**: Vitest 권장 (ESM 지원, 빠른 속도)
-- **NestJS**: Jest 기본 제공 (공식 지원)
+| Framework | Test Runner | Note |
+|-----------|-------------|------|
+| **Expo** | Jest | Vitest NOT supported |
+| **React Native** | Jest | Vitest NOT supported |
+| **React Router v7** | Vitest/Jest | Vitest recommended |
+| **NestJS** | Jest | Official default |
 
 ---
 
-## 출력 언어 규칙
+## Test Utility Structure
 
-| 항목 | 언어 |
-|------|------|
-| 테스트 설명 (`it`, `describe`) | 한글 |
-| 변수/함수명 | 영어 |
-| 코드 주석 | 한글 |
-| 콘솔 출력 | 한글 |
+| Path | Purpose |
+|------|---------|
+| `__tests__/fixtures/` | Mock data builders |
+| `__tests__/utils/` | Test helper functions |
+
+**Rules**:
+1. No inline helpers in test files - use shared locations
+2. Check existing utilities before creating new ones
+3. Support `overrides` parameter for customization
 
 ---
 
-## 품질 체크리스트
+## Code Examples
 
-테스트 완료 전 확인:
+Based on detected framework, read the corresponding reference file (paths relative to `.claude/skills/tdd/`):
 
-- [ ] 테스트 파일이 네이밍 규칙을 따름
-- [ ] 모든 테스트에 한글 설명 포함
-- [ ] AAA 패턴 준수
-- [ ] `beforeEach`에서 모킹 초기화
-- [ ] 테스트 코드에 `any` 타입 없음
-- [ ] 모든 테스트 통과
-- [ ] 타입 체크 통과
+| Framework | Reference File |
+|-----------|----------------|
+| React Router v7 | [references/react-router.example.md](./references/react-router.example.md) |
+| React Component | [references/react-component.example.md](./references/react-component.example.md) |
+| Zod Schema | [references/zod-schema.example.md](./references/zod-schema.example.md) |
+| NestJS | [references/nestjs.example.md](./references/nestjs.example.md) |
+| Expo/React Native | [references/expo-react-native.example.md](./references/expo-react-native.example.md) |
+
+> **Note**: Reference examples use English test descriptions for universal accessibility. When writing actual tests, follow the Output Language Rules below.
+
+---
+
+## Output Language Rules
+
+| Item | Language |
+|------|----------|
+| Test descriptions (`it`, `describe`) | Korean |
+| Variable/function names | English |
+| Code comments | Korean |
+
+---
+
+## Quality Checklist
+
+Before completing tests:
+
+- [ ] Test file follows naming convention
+- [ ] All tests have Korean descriptions
+- [ ] AAA pattern followed
+- [ ] Mocks initialized in `beforeEach`
+- [ ] No `any` type in test code
+- [ ] Shared helpers in `__tests__/fixtures/` or `__tests__/utils/`
+- [ ] All tests pass
+- [ ] Type check passes

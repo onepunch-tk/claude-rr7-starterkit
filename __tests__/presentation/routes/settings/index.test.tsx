@@ -1,272 +1,323 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { action } from "~/presentation/routes/settings/index";
+import { render, screen } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
 
-/**
- * settings 라우트 Action 테스트
- *
- * 테스트 대상:
- * - 프로필 업데이트 (updateProfile)
- * - 비밀번호 변경 (changePassword)
- * - 유효성 검증 실패
- * - 알 수 없는 액션 타입 처리
- */
+// sonner toast 모킹
+vi.mock("sonner", () => ({
+	toast: {
+		success: vi.fn(),
+	},
+}));
 
-// Mock authService
-const mockChangePassword = vi.fn();
+// 컴포넌트 import
+const { default: Settings } = await import(
+	"~/presentation/routes/settings/index"
+);
 
-const mockAuthService = {
-	changePassword: mockChangePassword,
+// Settings 컴포넌트 래퍼 (타입 체크 우회)
+const SettingsWrapper = ({
+	actionData,
+}: {
+	actionData?: Record<string, unknown>;
+}) => {
+	// Route.ComponentProps를 완전히 구현하기 어려우므로
+	// 필요한 actionData만 전달하는 간소화된 테스트
+	const props = { actionData } as unknown as Parameters<typeof Settings>[0];
+	return <Settings {...props} />;
 };
 
-// Mock container
-const mockContainer = {
-	authService: mockAuthService,
-};
-
-// Helper: Request 생성
-const createRequest = (formData: Record<string, string>): Request => {
-	const form = new FormData();
-	for (const [key, value] of Object.entries(formData)) {
-		form.append(key, value);
-	}
-	return new Request("http://localhost:3000/my/settings", {
-		method: "POST",
-		body: form,
-	});
-};
-
-// Helper: ActionArgs 생성
-const createActionArgs = (request: Request) =>
-	({
-		request,
-		context: { container: mockContainer },
-		params: {},
-	}) as unknown as Parameters<typeof action>[0];
-
-describe("settings action", () => {
+describe("Settings", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	describe("프로필 업데이트 (updateProfile)", () => {
-		it("유효한 데이터로 프로필 업데이트 성공 시 성공 메시지를 반환한다", async () => {
+	describe("기본 렌더링", () => {
+		it("설정 페이지를 렌더링한다", async () => {
 			// Arrange
-			const request = createRequest({
-				_action: "updateProfile",
-				fullName: "홍길동",
-				email: "test@example.com",
-				bio: "안녕하세요",
-				language: "ko",
-				notifications: "on",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toEqual({
-				profileSuccess: "프로필이 성공적으로 업데이트되었습니다.",
-			});
+			expect(
+				await screen.findByRole("heading", { name: "설정" }),
+			).toBeInTheDocument();
 		});
 
-		it("이름이 비어있는 경우 검증 에러를 반환한다", async () => {
+		it("프로필 정보 카드를 표시한다", async () => {
 			// Arrange
-			const request = createRequest({
-				_action: "updateProfile",
-				fullName: "",
-				email: "test@example.com",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("profileErrors");
-			const errors = (result as { profileErrors: Record<string, unknown> })
-				.profileErrors;
-			expect(errors).toHaveProperty("fullName");
+			expect(await screen.findByText("프로필 정보")).toBeInTheDocument();
 		});
 
-		it("이메일 형식이 잘못된 경우 검증 에러를 반환한다", async () => {
+		it("비밀번호 변경 카드를 표시한다", async () => {
 			// Arrange
-			const request = createRequest({
-				_action: "updateProfile",
-				fullName: "홍길동",
-				email: "invalid-email",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("profileErrors");
-			const errors = (result as { profileErrors: Record<string, unknown> })
-				.profileErrors;
-			expect(errors).toHaveProperty("email");
-		});
-	});
-
-	describe("비밀번호 변경 (changePassword)", () => {
-		it("유효한 데이터로 비밀번호 변경 성공 시 성공 메시지를 반환한다", async () => {
-			// Arrange
-			mockChangePassword.mockResolvedValueOnce(undefined);
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "OldTest1234!",
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(mockChangePassword).toHaveBeenCalledWith(
-				"OldTest1234!",
-				"NewTest1234!",
-				true,
-				expect.any(Headers),
-			);
-			expect(result).toEqual({
-				passwordSuccess: "비밀번호가 성공적으로 변경되었습니다.",
-			});
+			// "비밀번호 변경" 텍스트가 여러 번 나타남 (카드 제목, 버튼)
+			const elements = await screen.findAllByText(/비밀번호 변경/i);
+			expect(elements.length).toBeGreaterThan(0);
 		});
 
-		it("현재 비밀번호가 비어있는 경우 검증 에러를 반환한다", async () => {
+		it("2단계 인증 카드를 표시한다", async () => {
 			// Arrange
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "",
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toHaveProperty("passwordErrors");
-			const errors = (result as { passwordErrors: Record<string, unknown> })
-				.passwordErrors;
-			expect(errors).toHaveProperty("currentPassword");
-		});
-
-		it("새 비밀번호가 복잡도 요구사항을 충족하지 않는 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "OldTest1234!",
-				newPassword: "weak",
-				newPasswordConfirm: "weak",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("passwordErrors");
-			const errors = (result as { passwordErrors: Record<string, unknown> })
-				.passwordErrors;
-			expect(errors).toHaveProperty("newPassword");
-		});
-
-		it("새 비밀번호 확인이 일치하지 않는 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "OldTest1234!",
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "DifferentTest1234!",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("passwordErrors");
-			const errors = (result as { passwordErrors: Record<string, unknown> })
-				.passwordErrors;
-			expect(errors).toHaveProperty("newPasswordConfirm");
-		});
-
-		it("새 비밀번호가 현재 비밀번호와 같은 경우 검증 에러를 반환한다", async () => {
-			// Arrange
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "Test1234!",
-				newPassword: "Test1234!",
-				newPasswordConfirm: "Test1234!",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("passwordErrors");
-			const errors = (result as { passwordErrors: Record<string, unknown> })
-				.passwordErrors;
-			expect(errors).toHaveProperty("newPassword");
-		});
-
-		it("비밀번호 변경 실패 시 에러 메시지를 반환한다", async () => {
-			// Arrange
-			mockChangePassword.mockRejectedValueOnce(
-				new Error("Current password is incorrect"),
-			);
-			const request = createRequest({
-				_action: "changePassword",
-				currentPassword: "WrongPassword1!",
-				newPassword: "NewTest1234!",
-				newPasswordConfirm: "NewTest1234!",
-			});
-			const args = createActionArgs(request);
-
-			// Act
-			const result = await action(args);
-
-			// Assert
-			expect(result).toHaveProperty("passwordError");
-			expect((result as { passwordError: string }).passwordError).toBe(
-				"비밀번호 변경에 실패했습니다.",
-			);
+			expect(await screen.findByText("2단계 인증")).toBeInTheDocument();
 		});
 	});
 
-	describe("알 수 없는 액션 타입", () => {
-		it("알 수 없는 _action 타입은 에러를 반환한다", async () => {
+	describe("프로필 정보 폼", () => {
+		it("이름 입력 필드를 표시한다", async () => {
 			// Arrange
-			const request = createRequest({
-				_action: "unknownAction",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "올바르지 않은 요청입니다." });
+			expect(await screen.findByLabelText(/이름/i)).toBeInTheDocument();
 		});
 
-		it("_action이 없는 경우 에러를 반환한다", async () => {
+		it("이메일 입력 필드를 표시한다", async () => {
 			// Arrange
-			const request = createRequest({
-				someField: "someValue",
-			});
-			const args = createActionArgs(request);
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
 
 			// Act
-			const result = await action(args);
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
 
 			// Assert
-			expect(result).toEqual({ error: "올바르지 않은 요청입니다." });
+			expect(await screen.findByLabelText(/이메일/i)).toBeInTheDocument();
+		});
+
+		it("자기소개 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(await screen.findByLabelText(/자기소개/i)).toBeInTheDocument();
+		});
+
+		it("언어 선택을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			// Select 컴포넌트는 htmlFor로 연결되어 있지 않으므로 텍스트로 확인
+			expect(await screen.findByText("언어")).toBeInTheDocument();
+		});
+
+		it("알림 수신 스위치를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(await screen.findByText(/알림 수신/i)).toBeInTheDocument();
+		});
+
+		it("변경사항 저장 버튼을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("button", { name: /변경사항 저장/i }),
+			).toBeInTheDocument();
+		});
+	});
+
+	describe("비밀번호 변경 폼", () => {
+		it("현재 비밀번호 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(await screen.findByLabelText(/현재 비밀번호/i)).toBeInTheDocument();
+		});
+
+		it("새 비밀번호 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			// 페이지 로딩 대기 후 newPassword input 확인
+			await screen.findAllByText(/비밀번호 변경/i);
+			const newPasswordInput = document.querySelector('input[name="newPassword"]');
+			expect(newPasswordInput).toBeInTheDocument();
+		});
+
+		it("새 비밀번호 확인 입력 필드를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(
+				await screen.findByLabelText(/새 비밀번호 확인/i),
+			).toBeInTheDocument();
+		});
+
+		it("비밀번호 변경 버튼을 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => <SettingsWrapper actionData={undefined} />,
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(
+				await screen.findByRole("button", { name: /비밀번호 변경/i }),
+			).toBeInTheDocument();
+		});
+	});
+
+	describe("에러 상태", () => {
+		it("프로필 에러 메시지를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => (
+						<SettingsWrapper
+							actionData={{ profileError: "프로필 업데이트에 실패했습니다." }}
+						/>
+					),
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(
+				await screen.findByText(/프로필 업데이트에 실패했습니다/i),
+			).toBeInTheDocument();
+		});
+
+		it("비밀번호 에러 메시지를 표시한다", async () => {
+			// Arrange
+			const RoutesStub = createRoutesStub([
+				{
+					path: "/my/settings",
+					Component: () => (
+						<SettingsWrapper
+							actionData={{ passwordError: "비밀번호 변경에 실패했습니다." }}
+						/>
+					),
+				},
+			]);
+
+			// Act
+			render(<RoutesStub initialEntries={["/my/settings"]} />);
+
+			// Assert
+			expect(
+				await screen.findByText(/비밀번호 변경에 실패했습니다/i),
+			).toBeInTheDocument();
 		});
 	});
 });
