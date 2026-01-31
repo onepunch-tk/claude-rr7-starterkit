@@ -95,14 +95,12 @@ Focus on these security vulnerability categories:
 
 ### Step 2.3: Evidence-Based Validation (MANDATORY)
 
-**Every finding MUST have rationale AND evidence. Exclude speculative findings.**
+**Every finding MUST have rationale AND evidence.**
 
 #### Validation Checklist
 - [ ] Can explain specific security risk with OWASP reference?
 - [ ] Have concrete attack vector example?
 - [ ] Can demonstrate real-world exploitation risk (not theoretical)?
-
-If any answer is "No", DO NOT report the finding.
 
 ### Step 2.5: Package Vulnerability Audit (MANDATORY)
 

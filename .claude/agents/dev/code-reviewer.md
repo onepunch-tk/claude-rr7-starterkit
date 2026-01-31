@@ -138,14 +138,12 @@ Review based on learned documentation:
 
 ### Step 3.5: Evidence-Based Validation (MANDATORY)
 
-**Every finding MUST have rationale AND evidence. Exclude uncertain findings.**
+**Every finding MUST have rationale AND evidence.**
 
 #### Validation Checklist
 - [ ] Can explain WHY this is a problem (specific rule reference)?
 - [ ] Have CONCRETE proof (code snippet, compiler error, documentation)?
 - [ ] Would another developer understand exactly what's wrong?
-
-If any answer is "No", DO NOT report the finding.
 
 ### Step 4: Report Generation
 
