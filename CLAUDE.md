@@ -5,6 +5,9 @@
 - **Goal**: [Problem to solve and value to provide]
 - **Target Users**: [Primary user target]
 
+## Core Principles
+> **TDD-First**: All implementations must be preceded by writing tests first.
+
 ## Tech Stack
 - **Package Manager**
   - bun
@@ -32,19 +35,7 @@
 
 ## Development Workflow [MANDATORY]
 
-> **CRITICAL**: Follow ALL steps below IN ORDER. Do NOT skip any step. Do NOT proceed without explicit user approval at Step 4.
-
-### Pre-Implementation Rules
-
-**RULE 1: Plan Mode Required**
-- ALWAYS enter `PlanMode` before any implementation task
-
-**RULE 2: TDD-First Development**
-- BEFORE writing any implementation code:
-  1. Run `unit-test-writer` sub-agent
-  2. Write failing tests FIRST
-  3. THEN implement code to pass tests
-- Applies to: Services | Handlers | Libs | Helpers | Utils | Components | Routes | Functions
+> **CRITICAL**: Follow ALL steps below IN ORDER. Do NOT skip any step. Do NOT proceed without explicit user approval at Step 5.
 
 ### Workflow Execution Steps
 
@@ -52,28 +43,30 @@ Execute these steps SEQUENTIALLY. Each step MUST complete before proceeding.
 
 | Step | Action | Output | Blocker |
 |------|--------|--------|---------|
-| **1** | Analyze current state thoroughly | Understanding of existing code, dependencies, impact areas | - |
-| **2** | Create detailed step-by-step plan | Comprehensive plan covering edge cases | - |
-| **3** | Call `TaskCreate` tool | Granular tasks and subtasks (maximize decomposition) | - |
-| **4** | **STOP** - Display task list to user | Task list shown | **WAIT for user instruction** |
-| **5** | Implement with side-effect awareness | Code changes | User approval from Step 4 |
-| **6** | Run background agents in parallel: `code-reviewer` + `security-code-reviewer` | Review reports generated | Step 5 complete |
-| **7** | Read `/docs/reports/*`, fix all non-complete issues | All issues resolved | Step 6 complete |
-| **8** | Run `e2e-tester` sub-agent | E2E tests pass | Step 7 complete |
-| **9** | Update `/docs/NOTE.md` with lessons learned | Knowledge documented | Step 8 complete |
+| **1** | Enter `PlanMode` | Plan mode activated | - |
+| **2** | Analyze current state thoroughly | Understanding of existing code, dependencies, impact areas | - |
+| **3** | Create detailed step-by-step plan | Comprehensive plan covering edge cases | - |
+| **4** | Call `TaskCreate` tool | Granular tasks and subtasks (maximize decomposition) | - |
+| **5** | **STOP** - Display task list to user | Task list shown | **WAIT for user instruction** |
+| **6** | Run `unit-test-writer` sub-agent | Failing tests written (TDD Red phase) | User approval from Step 5 |
+| **7** | Implement code to pass tests | All tests pass (TDD Green phase) | Step 6 complete |
+| **8** | Run background agents in parallel: `code-reviewer` + `security-code-reviewer` | Review reports generated | Step 7 complete |
+| **9** | Read `/docs/reports/*`, fix all non-complete issues | All issues resolved | Step 8 complete |
+| **10** | Run `e2e-tester` sub-agent | E2E tests pass | Step 9 complete |
+| **11** | Update `/docs/NOTE.md` with lessons learned | Knowledge documented | Step 10 complete |
 
 ### Critical Checkpoints
 
 ```
-IF Step 3 (TaskCreate) complete:
+IF Step 4 (TaskCreate) complete:
   → MUST show task list to user
   → MUST wait for explicit user instruction
   → DO NOT auto-execute any task
 
-IF Step 6 (code review) complete:
+IF Step 8 (code review) complete:
   → MUST read all report files in /docs/reports/
   → MUST fix issues where status != "complete"
-  → THEN proceed to Step 8
+  → THEN proceed to Step 10
 
 IF any step fails:
   → STOP execution
