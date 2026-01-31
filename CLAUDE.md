@@ -32,6 +32,8 @@
 ## Critical Documents
 - Project Structure [docs/PROJECT-STRUCTURE.md](docs/PROJECT-STRUCTURE.md): **MANDATORY** - Reference before ANY task
 - Common Mistakes & Solutions [docs/NOTE.md](docs/NOTE.md): **MANDATORY** - Record frequent mistakes after code modifications to prevent repetition
+- PRD Document [docs/PRD.md](docs/PRD.md): **MANDATORY** - Defines "what" to build (features, requirements)
+- Development RoadMap [docs/ROADMAP.md](docs/ROADMAP.md): **MANDATORY** - Defines "in what order" to build (implementation phases)
 
 ## Development Workflow [MANDATORY]
 
