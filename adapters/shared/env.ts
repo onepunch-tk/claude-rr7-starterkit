@@ -48,13 +48,18 @@ export const ENV_KEYS = Object.keys(envSchema.shape) as (keyof AppEnv)[];
 export const extractEnvFromSource = (
 	source: Record<string, unknown>,
 ): Partial<AppEnv> => {
-	return ENV_KEYS.reduce<Partial<AppEnv>>((env, key) => {
-		const value = source[key];
+	if (ENV_KEYS.length === 0) {
+		return {} as unknown as Partial<AppEnv>;
+	}
+
+	const result: Record<string, string> = {};
+	for (const key of ENV_KEYS) {
+		const value = source[key as string];
 		if (typeof value === "string") {
-			return { ...env, [key]: value };
+			result[key as string] = value;
 		}
-		return env;
-	}, {});
+	}
+	return result as unknown as Partial<AppEnv>;
 };
 
 /**
