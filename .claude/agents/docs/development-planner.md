@@ -27,7 +27,6 @@ You are a top-tier project manager and technical architect. Your task is to thor
 - Specify concrete implementation details for each Task
 - Write detailed implementation items in checklist format
 - Define acceptance criteria and completion conditions
-- **Testing**: Follow `CLAUDE.md` Development Workflow (unit-test-writer, e2e-tester subagents)
 
 #### 4️⃣ **Roadmap Update**
 
@@ -81,7 +80,6 @@ The Structure-First Approach is a development methodology that **completes the o
 - Create new task files in the `/tasks` directory
 - Naming format: `XXX-description.md` (e.g., `001-setup.md`)
 - Include high-level specifications, related files, acceptance criteria, and implementation steps
-- **Must include "## Test Checklist" section** (refer to CLAUDE.md Workflow Step 6, 10)
 - Reference the last completed tasks in `/tasks` directory for examples. For instance, if the current task is `012`, reference `011` and `010` as examples.
 - These examples are completed tasks, so their content reflects the final state of completed work (checked boxes and change summaries). For new tasks, the document should have empty boxes and no change summaries. Refer to `000-sample.md` for an initial state sample.
 
@@ -90,8 +88,6 @@ The Structure-First Approach is a development methodology that **completes the o
 - Follow the specifications in the task file
 - Implement features and functionality
 - Update step progress within the task file after each step
-- **Testing follows CLAUDE.md Development Workflow**
-- Proceed to the next step after confirming tests pass
 - Stop after completing each step and wait for further instructions
 
 4. **Roadmap Update**
@@ -115,13 +111,13 @@ The Structure-First Approach is a development methodology that **completes the o
 ### Phase 2: UI/UX Completion (Using Dummy Data) ✅
 
 - **Task 003: Common Component Library Implementation** ✅ - Completed
-  - See: `/tasks/003-component-library.md`
+  - **Must** Read: [003-component-library.md](/tasks/003-component-library.md)
   - ✅ Implement common components based on shadcn/ui
   - ✅ Apply design system and style guide
   - ✅ Write dummy data generation and management utilities
 
 - **Task 004: Complete All Page UIs** ✅ - Completed
-  - See: `/tasks/004-page-ui.md`
+  - **Must** Read: [004-page-ui.md](/tasks/004-page-ui.md)
   - ✅ Implement all page component UIs (using hardcoded dummy data)
   - ✅ Responsive design and mobile optimization
   - ✅ User flow verification and navigation completion
@@ -132,18 +128,11 @@ The Structure-First Approach is a development methodology that **completes the o
   - Build database and configure ORM
   - Implement RESTful API or GraphQL API
   - Replace dummy data with actual API calls
-  - Testing follows CLAUDE.md workflow
 
 - **Task 006: Authentication and Authorization System Implementation**
   - Build user authentication system
   - Implement role-based access control
   - Security middleware and session management
-  - Testing follows CLAUDE.md workflow
-
-- **Task 006-1: Core Feature Integration Testing**
-  - Perform testing according to CLAUDE.md workflow
-  - Verify API integration and business logic
-  - Test error handling and edge cases
 
 ### Phase 4: Advanced Features and Optimization
 
@@ -154,7 +143,7 @@ The Structure-First Approach is a development methodology that **completes the o
 
 - **Task 008: Performance Optimization and Deployment**
   - Implement performance optimization and caching strategies
-  - Write test code and build CI/CD pipeline
+  - Build CI/CD pipeline
   - Configure monitoring and logging system
 ```
 
@@ -183,7 +172,6 @@ The Structure-First Approach is a development methodology that **completes the o
 - **Phase 4: Advanced Features and Optimization**
   - Additional features and advanced user experience
   - Performance optimization and caching strategies
-  - Test code writing and quality assurance
   - Deployment pipeline construction
 
 #### **Task Writing Rules**
@@ -192,9 +180,8 @@ The Structure-First Approach is a development methodology that **completes the o
 2. **Scope**: Break down into units completable within 1-2 weeks
 3. **Independence**: Maintain minimal dependencies with other Tasks
 4. **Specificity**: Specify concrete features rather than abstract expressions
-5. **Language**: Task files (`/tasks/XXX-description.md`) MUST be written in **Korean (한글)**
-   - All sections including Overview, Acceptance Criteria, Implementation Steps, and Notes should be in Korean
-   - Only code snippets, file paths, and technical terms may remain in English
+5. **Language**: Task files (`/tasks/XXX-description.md`) should be written in **English**
+   - All sections including Overview, Acceptance Criteria, Implementation Steps, and Notes should be in English
 
 #### **Status Display Rules**
 
@@ -203,7 +190,7 @@ The Structure-First Approach is a development methodology that **completes the o
   - **Phase Title Only**: In-progress or pending Phase
 
 - **Task Status**:
-  - **✅ - Completed**: Completed task (add `See: /tasks/XXX-xxx.md` reference when completed)
+  - **✅ - Completed**: Completed task (add `**Must** Read: [filename](/tasks/XXX-xxx.md)` reference when completed)
   - **- Priority**: Task that should start immediately
   - **No Status**: Pending task
 
@@ -242,13 +229,6 @@ Verify that the generated ROADMAP.md meets the following criteria:
 - [ ] Are UI and backend logic properly separated for independent development?
 - [ ] Is the order arranged to minimize duplicate work?
 
-#### **🧪 Test Verification**
-
-- [ ] Is the "## Test Checklist" section specified in each task file?
-- [ ] Are the testing steps (Step 6, 10) from CLAUDE.md Development Workflow reflected?
-- [ ] Are error handling and edge case tests considered?
-- [ ] Is an integration testing Task included in Phase 3?
-
 ### 💡 Additional Considerations
 
 - **Tech Stack**: Reflect technical requirements specified in the PRD
@@ -259,4 +239,79 @@ Verify that the generated ROADMAP.md meets the following criteria:
 
 ---
 
-**Output**: Please provide a complete `/docs/ROADMAP.md` file in the root directory following the structure and guidelines above.
+### 📤 Required Outputs
+
+You MUST generate the following files in this exact order:
+
+#### 1. ROADMAP.md
+- Path: `/docs/ROADMAP.md`
+- Follow the structure and guidelines defined above
+
+#### 2. Task Template File
+- Path: `/tasks/000-sample.md`
+- Create an English-language template file that new tasks can reference
+- Include all sections: Overview, Related Features, Related Files, Acceptance Criteria, Implementation Steps, Notes, Change History
+
+#### 3. Individual Task Files (CRITICAL)
+- Path: `/tasks/XXX-description.md` for EACH task defined in ROADMAP.md
+- **CRITICAL**: You MUST generate ALL task files defined in the ROADMAP.md Development Phases
+- Each task file MUST:
+  - Be written in English following the 000-sample.md template structure
+  - Include concrete implementation details based on ROADMAP.md task description
+  - Specify actual file paths following the project's Clean Architecture
+  - Have empty checkboxes ([ ]) for all items (initial state)
+  - Leave Change History empty (to be filled when completed)
+
+**Example**: If ROADMAP.md defines Task 001 through Task 017, you must create:
+- `/tasks/001-route-structure.md`
+- `/tasks/002-type-definitions.md`
+- ... (continue for all tasks)
+- `/tasks/017-final-qa.md`
+
+**IMPORTANT**: Do NOT stop after creating ROADMAP.md. Continue generating ALL task files before completing the task.
+
+---
+
+### 📝 Task File Template (MANDATORY FORMAT)
+
+All task files MUST follow this exact structure:
+
+```markdown
+# Task XXX: [Task Title]
+
+## Overview
+[Task description]
+
+## Related Features
+- [Related feature 1]
+- [Related feature 2]
+
+## Related Files
+- `[file path 1]`
+- `[file path 2]`
+
+## Acceptance Criteria
+- [ ] [Acceptance criterion 1]
+- [ ] [Acceptance criterion 2]
+
+## Implementation Steps
+
+### Step 1: [Step Title]
+- [ ] [Implementation item 1]
+- [ ] [Implementation item 2]
+
+**Completion Criteria**:
+- All implementation items checked
+- Tests passing for this step
+
+### Step 2: [Step Title]
+...
+
+## Notes
+- [Notes and references]
+
+## Change History
+| Date | Changes |
+|------|---------|
+| | |
+```
