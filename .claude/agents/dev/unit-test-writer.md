@@ -1,7 +1,7 @@
 ---
 name: unit-test-writer
 description: "use proactively, Use this agent when: 1) Writing tests for specific files, 2) Adding test coverage to new features, 3) Fixing failing tests. Writes unit tests following TDD principles."
-model: opus
+model: sonnet
 color: green
 ---
 

@@ -7,6 +7,7 @@
 
 ## Core Principles
 > **TDD-First**: All implementations must be preceded by writing tests first.
+> **Side Effect Awareness**: All code modifications (except tests) must be written with careful consideration of potential side effects.
 
 ## Tech Stack
 - **Package Manager**
@@ -54,79 +55,13 @@ Execute these steps SEQUENTIALLY. Each step MUST complete before proceeding.
 | **7** | Create feature branch from `development` | Feature branch created (e.g., `feat/task-description`) | Step 6 complete |
 | **8** | **MUST** Run `unit-test-writer` sub-agent | Failing tests written (TDD Red phase) | Step 7 complete |
 | **9** | Implement code to pass tests | All tests pass (TDD Green phase) | Step 8 complete |
-| **10** | **MUST** Run in parallel: `code-reviewer` + `security-code-reviewer` sub-agents | Review reports generated | Step 9 complete |
+| **10** | **MUST** Run in parallel: `code-reviewer` + `security-code-reviewer` + `performance-analyzer` sub-agents | Review reports generated | Step 9 complete |
 | **11** | Read `/docs/reports/*`, fix all non-complete issues | All issues resolved | Step 10 complete |
 | **12** | **MUST** Run `e2e-tester` sub-agent | E2E test results | Step 11 complete |
 | **13** | Fix bugs/issues discovered in E2E tests | All E2E tests pass | Step 12 complete |
 | **14** | Update `/docs/NOTE.md` with lessons learned | Knowledge documented | Step 13 complete |
 | **15** | **MUST** Run `development-planner` sub-agent | ROADMAP.md and task file updated with ✅ Complete status | Step 14 complete |
 | **16** | Commit changes, merge feature branch to `development` | Branch merged, feature branch deleted | Step 15 complete |
-
-### Critical Checkpoints
-
-```
-CHECKPOINT 0: Before ANY Work (CRITICAL - Branch Safety)
-  → NEVER work directly on `main` or `master` branch
-  → Verify current branch is NOT main/master before any code changes
-  → If on main/master → Switch to development immediately
-  → All development MUST happen on feature branches
-
-CHECKPOINT 1: After Step 5 (TaskList)
-  → MUST call `TaskList` tool to display all tasks
-  → MUST wait for explicit user instruction (e.g., "proceed", "start", "go")
-  → DO NOT auto-execute any task without user approval
-
-CHECKPOINT 2: After Step 7 (Branch Setup)
-  → Verify on feature branch (NOT main/master/development)
-  → If development doesn't exist → Create from main
-  → Feature branch naming convention:
-    - `feat/` for new features
-    - `fix/` for bug fixes
-    - `refactor/` for refactoring
-    - Example: `feat/add-invoice-pdf-export`
-
-CHECKPOINT 3: After Step 8 (TDD Red Phase)
-  → Verify tests are written and FAILING (Red state)
-  → If tests pass immediately → Review test logic (may not be testing correctly)
-  → Proceed to Step 9 only when failing tests exist
-
-CHECKPOINT 4: After Step 9 (TDD Green Phase)
-  → Run `bun test` to verify ALL unit tests pass
-  → If any test fails → Fix implementation before proceeding
-  → DO NOT proceed to code review with failing tests
-
-CHECKPOINT 5: After Step 11 (Code Review Fixes)
-  → MUST read all report files in /docs/reports/
-  → MUST fix ALL issues where status != "complete"
-  → Re-run reviewers if significant changes were made
-  → THEN proceed to Step 12
-
-CHECKPOINT 6: After Step 12 (E2E Testing)
-  → If E2E tests fail → Proceed to Step 13 (bug fixing)
-  → If E2E tests pass → Skip Step 13, proceed to Step 14
-  → Document all discovered issues before fixing
-
-CHECKPOINT 7: After Step 15 (Task Completion Update)
-  → MUST call `development-planner` subagent to update task status
-  → Verify ROADMAP.md task is marked with ✅ Complete
-  → Verify task file (`/tasks/XXX-*.md`) has:
-    - All checkboxes checked
-    - Change History filled with date and summary
-  → DO NOT proceed to commit without proper task completion marking
-
-CHECKPOINT 8: After Step 16 (Merge - FINAL)
-  → Verify all changes are committed with descriptive message
-  → Merge feature branch to development using `--no-ff` (preserve branch history)
-  → Delete feature branch after successful merge
-  → NEVER merge directly to main/master (requires PR review)
-
-CHECKPOINT 9: Failure Recovery
-  → IF any step fails: STOP execution immediately
-  → Report failure details to user
-  → WAIT for user instruction before retrying
-  → DO NOT auto-retry failed operations
-```
-
 
 ## Code Conventions [MANDATORY]
 ### React 19 Optimization & Performance [STRICT]
