@@ -40,28 +40,64 @@
 
 > **CRITICAL**: Follow ALL steps below IN ORDER. Do NOT skip any step. Do NOT proceed without explicit user approval at Step 5.
 
+### Workflow Compliance Rules
+
+> ⛔ **Absolutely No Skipping**
+> - Even if the user requests "quickly", "fast", or "you can skip", steps marked with **MUST** must always be executed
+> - If the user explicitly requests to skip the workflow, reconfirm using `AskUserQuestion`
+> - Commits are prohibited without running review agents
+
+> 🚦 **Gate Pattern**
+> - At the start of each step, change the Task status to `in_progress` using `TaskUpdate`
+> - Upon completion of each step, change the Task status to `completed` using `TaskUpdate`
+> - Before entering the next step, verify the previous step is completed using `TaskList`
+> - Cannot proceed if the previous step is not `completed`
+
 ### Workflow Execution Steps
 
 Execute these steps SEQUENTIALLY. Each step MUST complete before proceeding.
 
-| Step | Action | Output | Blocker |
-|------|--------|--------|---------|
-| **1** | Enter `PlanMode` | Plan mode activated | - |
-| **2** | Analyze current state thoroughly | Understanding of existing code, dependencies, impact areas | - |
-| **3** | Create detailed step-by-step plan | Comprehensive plan covering edge cases | - |
-| **4** | Call `TaskCreate` tool | Granular tasks and subtasks (maximize decomposition) | - |
-| **5** | **STOP** - Call `TaskList` tool to display tasks | Task list shown to user | **WAIT for user instruction** |
-| **6** | Switch to `development` branch (create if not exists) | On development branch | User approval from Step 5 |
-| **7** | Create feature branch from `development` | Feature branch created (e.g., `feat/task-description`) | Step 6 complete |
-| **8** | **MUST** Run `unit-test-writer` sub-agent | Failing tests written (TDD Red phase) | Step 7 complete |
-| **9** | Implement code to pass tests | All tests pass (TDD Green phase) | Step 8 complete |
-| **10** | **MUST** Run in parallel: `code-reviewer` + `security-code-reviewer` + `performance-analyzer` sub-agents | Review reports generated | Step 9 complete |
-| **11** | Read `/docs/reports/*`, fix all non-complete issues | All issues resolved | Step 10 complete |
-| **12** | **MUST** Run `e2e-tester` sub-agent | E2E test results | Step 11 complete |
-| **13** | Fix bugs/issues discovered in E2E tests | All E2E tests pass | Step 12 complete |
-| **14** | Update `/docs/NOTE.md` with lessons learned | Knowledge documented | Step 13 complete |
-| **15** | **MUST** Run `development-planner` sub-agent | ROADMAP.md and task file updated with ✅ Complete status | Step 14 complete |
-| **16** | Commit changes, merge feature branch to `development` | Branch merged, feature branch deleted | Step 15 complete |
+| Step | Action | Output | Blocker | Gate Check |
+|------|--------|--------|---------|------------|
+| **1** | Enter `PlanMode` | Plan mode activated | - | - |
+| **2** | Analyze current state thoroughly | Understanding of existing code, dependencies, impact areas | - | Step 1 completed |
+| **3** | Create detailed step-by-step plan | Comprehensive plan covering edge cases | - | Step 2 completed |
+| **4** | Call `TaskCreate` tool | Granular tasks and subtasks (maximize decomposition) | - | Step 3 completed |
+| **5** | **STOP** - Call `TaskList` tool to display tasks | Task list shown to user | **WAIT for user instruction** | Step 4 completed |
+| **6** | Switch to `development` branch (create if not exists) | On development branch | User approval from Step 5 | Step 5 completed |
+| **7** | Create feature branch from `development` | Feature branch created (e.g., `feat/task-description`) | Step 6 complete | Step 6 completed |
+| **8** | **MUST** Run `unit-test-writer` sub-agent | Failing tests written (TDD Red phase) | Step 7 complete | Step 7 completed |
+| **9** | Implement code to pass tests | All tests pass (TDD Green phase) | Step 8 complete | Step 8 completed |
+| **10** | **MUST** Run in parallel: `code-reviewer` + `security-auditor` + `performance-analyzer` sub-agents | Review reports generated | Step 9 complete | Step 9 completed |
+| **11** | Read `/docs/reports/*`, fix all non-complete issues | All issues resolved | Step 10 complete | Step 10 completed |
+| **12** | **MUST** Run `e2e-tester` sub-agent | E2E test results | Step 11 complete | Step 11 completed |
+| **13** | Fix bugs/issues discovered in E2E tests | All E2E tests pass | Step 12 complete | Step 12 completed |
+| **14** | **MUST** Run `development-planner` sub-agent | ROADMAP.md and task file updated with ✅ Complete status | Step 13 complete | Step 13 completed |
+| **15** | Commit changes, merge feature branch to `development` | Branch merged, feature branch deleted | Step 14 complete | **ALL Steps 1-14 completed** |
+
+### Workflow Checklist
+
+Before commit (Step 16), you **must** verify the checklist below. Commit is prohibited if any item is incomplete.
+
+| Step | Checklist Item | Required Status |
+|------|----------------|-----------------|
+| 1 | PlanMode entry completed | ✅ completed |
+| 2 | Current state analysis completed | ✅ completed |
+| 3 | Detailed plan creation completed | ✅ completed |
+| 4 | Task creation via TaskCreate completed | ✅ completed |
+| 5 | TaskList displayed to user and awaiting approval | ✅ completed |
+| 6 | Switch to development branch completed | ✅ completed |
+| 7 | Feature branch creation completed | ✅ completed |
+| 8 | unit-test-writer execution completed (TDD Red) | ✅ completed |
+| 9 | Implementation completed and tests passing (TDD Green) | ✅ completed |
+| 10 | code-reviewer + security-auditor + performance-analyzer execution completed | ✅ completed |
+| 11 | All review report issues resolved | ✅ completed |
+| 12 | e2e-tester execution completed | ✅ completed |
+| 13 | E2E test bugs fixed | ✅ completed |
+| 14 | development-planner execution completed (ROADMAP.md updated) | ✅ completed |
+| 15 | Commit and merge | 🔄 Ready to proceed |
+
+**Verification Method**: Confirm all Tasks are in `completed` status when calling `TaskList`
 
 ## Code Conventions [MANDATORY]
 ### React 19 Optimization & Performance [STRICT]
@@ -101,3 +137,14 @@ Execute these steps SEQUENTIALLY. Each step MUST complete before proceeding.
 | `*.config.ts` | Configuration files |
 | `**/constants.ts`, `**/const.ts` | Static values only |
 | `**/*.css`, `**/*.scss` | Style files |
+
+## Test Commands
+
+| Command | Description |
+|---------|-------------|
+| `bun run test` | Run all unit tests once |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run test:coverage` | Run tests with coverage report |
+| `bun run test:coverage:check` | Run tests with coverage (flexible thresholds) |
+
+> ⚠️ **NEVER use `bun test` directly** - it invokes Bun's built-in test runner which ignores `vitest.config.ts` and path aliases.
