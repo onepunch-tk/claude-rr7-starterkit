@@ -31,13 +31,17 @@ Invoke with: `/workflow-team lead` or `/workflow-team teammate`
 
 ### Phase 2: Execute (after user approval)
 
-1. Switch to `development` branch, create a working branch for the team
-2. Spawn teammates with detailed prompts:
-   - Task file path
-   - Specific files to modify
-   - "Follow CLAUDE.md and read your assigned task file"
+| Step | Action |
+|------|--------|
+| 1 | Switch to `development` branch, create a working branch for the team |
+| 2 | Spawn teammates with detailed prompts (see Spawn Example below) |
+| 3 | Use **Delegate Mode** (Shift+Tab) — do NOT implement yourself |
+| 4 | Monitor teammate progress, unblock as needed |
 
-### Spawn Example
+> Enable **Plan Approval** for complex/risky tasks.
+> All teammates work on the **same feature branch** (file ownership prevents conflicts).
+
+#### Spawn Example
 
 ```
 Create an agent team with N teammates:
@@ -46,16 +50,16 @@ Create an agent team with N teammates:
 Use Opus for all teammates. Require plan approval.
 ```
 
-### Lead Rules
+### Phase 3: Review & Merge (after all teammates complete)
 
-- Use **Delegate Mode** (Shift+Tab) — do NOT implement yourself
-- Enable **Plan Approval** for complex/risky tasks
-- All teammates work on the **same feature branch** (file ownership prevents conflicts)
-- After all teammates complete: run the project's test command (see CLAUDE.md Commands) to verify integration
-- Run full review suite: `code-reviewer` + `e2e-tester`
-- Fix any integration issues discovered
-- **Lead merges** feature branch into `development`
-- Update `ROADMAP.md` and `PROJECT-STRUCTURE.md` after merge
+| Step | Action |
+|------|--------|
+| 1 | Run the project's test command (see CLAUDE.md Commands) to verify integration |
+| 2 | Run `code-reviewer` sub-agent on all changed files |
+| 3 | Run `e2e-tester` sub-agent to validate user flows |
+| 4 | Read report in `/docs/reports/code-review/` → fix ALL issues where status ≠ "complete" |
+| 5 | Merge working branch → `development` |
+| 6 | Update `ROADMAP.md` and `PROJECT-STRUCTURE.md` |
 
 ### Merge Strategy
 
@@ -67,11 +71,7 @@ main
            ├── teammate-B commits (owns: file-list-B)
            └── teammate-C commits (owns: file-list-C)
 
-After all teammates done:
-  1. Lead runs the project's test command
-  2. Lead runs `code-reviewer` + `e2e-tester`
-  3. Lead fixes integration issues
-  4. Lead merges working branch → development
+After all teammates done → Phase 3
 ```
 
 ### Git Conventions
