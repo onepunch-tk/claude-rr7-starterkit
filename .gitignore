@@ -6,10 +6,14 @@
 
 # wrangler
 .wrangler
+.dev.vars
 
 # React Router
 /.react-router/
 /build/
+
+# Test coverage reports
+/coverage/
 
 # Supabase (로컬 개발용)
 supabase/.branches
@@ -201,3 +205,5 @@ service-account.json
 .claude/hooks/.env.hooks
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,visualstudiocode,jetbrains+all
+
+tmux-*.log
