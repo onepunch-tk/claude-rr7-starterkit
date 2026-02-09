@@ -89,11 +89,9 @@ See [workflow-commits.md](../git/references/workflow-commits.md)
 | 1 | Read `CLAUDE.md`, `docs/PROJECT-STRUCTURE.md`, assigned task file |
 | 2 | Run `unit-test-writer` sub-agent (Red Phase). **NEVER analyze patterns or write test code yourself — always delegate to the `unit-test-writer` subagent.** |
 | 3 | Implement code to pass tests (Green Phase) → run the project's test command (see CLAUDE.md Commands) |
-| 4 | Run `code-reviewer` sub-agent only (cost efficiency) |
-| 5 | Fix Critical/High issues (Medium/Low → log, don't block) |
-| 6 | Run the project's coverage command (see CLAUDE.md Commands) |
-| 7 | Commit per [workflow-commits.md](../git/references/workflow-commits.md) |
-| 8 | Message lead: files changed, test results, remaining issues |
+| 4 | Run the project's coverage command (see CLAUDE.md Commands) |
+| 5 | Commit per [workflow-commits.md](../git/references/workflow-commits.md) |
+| 6 | Message lead: files changed, test results, remaining issues |
 
 ### Teammate Rules
 
@@ -130,6 +128,7 @@ IF any step fails:
 ## Cost Notes
 
 - Use `opus` model for teammates
-- Teammates run `code-reviewer` only — lead also runs `code-reviewer` + `e2e-tester` post-merge
+- Teammates: **NO code-reviewer** — TDD cycle is the quality gate, lead handles all review in Phase 3
+- Lead runs `code-reviewer` + `e2e-tester` as the single review gate post-merge
 - Minimize sub-agent calls per teammate
 - Avoid broadcast messages — message lead directly
