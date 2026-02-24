@@ -277,15 +277,16 @@ Exactly 6 items per screen:
 
 ### Core Framework
 
-- **Expo SDK 52+** - React Native development platform
-- **React Native 0.76+** - Mobile UI framework
-- **TypeScript 5.6+** - Type safety
-- **React 19** - UI library
-- **Expo Router v4** - File-based navigation
+- **Expo SDK 55+** - React Native development platform
+- **React Native 0.83+** - Mobile UI framework (New Architecture only)
+- **TypeScript 5.7+** - Type safety
+- **React 19.2** - UI library
+- **Expo Router v55** - File-based navigation
 
 ### UI & Styling
 
 - **NativeWind v4** (TailwindCSS) - Utility styling
+- **Unistyles 3.0** - C++ powered StyleSheet with superpowers (theming, responsive, variants)
 - **React Native Reusables** - shadcn/ui for React Native
 - **Lucide React Native** - Icon library
 
@@ -489,15 +490,16 @@ Exactly 6 items per screen:
 
 ### Core Framework
 
-- **Expo SDK 52+** - React Native development platform
-- **React Native 0.76+** - Mobile UI framework
-- **TypeScript 5.6+** - Type safety
-- **React 19** - UI library
-- **Expo Router v4** - File-based navigation
+- **Expo SDK 55+** - React Native development platform
+- **React Native 0.83+** - Mobile UI framework (New Architecture only)
+- **TypeScript 5.7+** - Type safety
+- **React 19.2** - UI library
+- **Expo Router v55** - File-based navigation
 
 ### UI & Styling
 
 - **NativeWind v4** (TailwindCSS) - Utility styling
+- **Unistyles 3.0** - C++ powered StyleSheet with superpowers (theming, responsive, variants)
 - **React Native Reusables** - shadcn/ui for React Native
 - **Lucide React Native** - Icon library
 - **React Native Reanimated 3** - Animations
@@ -542,7 +544,7 @@ Exactly 6 items per screen:
 2. **User Perspective**: Focus on gestures and interactions users perform, not technical implementation
 3. **Development Ready**: Level where developers can start coding just by reading this document
 4. **MVP Scope**: Include only minimum features essential for project success
-5. **Latest Tech**: **MUST specify current latest versions** (Expo SDK 52+, React Native 0.76+, etc.)
+5. **Latest Tech**: **MUST specify current latest versions** (Expo SDK 55+, React Native 0.83+, etc.)
 6. **Mobile-First Thinking**: Consider touch targets, gesture patterns, screen real estate
 7. **Page Limits**:
    - Small: Maximum **2 A4 pages**
@@ -551,9 +553,10 @@ Exactly 6 items per screen:
 ## Tech Stack Selection Principles
 
 - **Latest Versions Required**: Use latest versions of frameworks and tools
-- **Expo SDK 52+**: Managed workflow for faster development
-- **Expo Router v4**: File-based navigation consistent with web patterns
+- **Expo SDK 55+**: Managed workflow for faster development (New Architecture only)
+- **Expo Router v55**: File-based navigation consistent with web patterns
 - **NativeWind v4**: TailwindCSS for React Native, consistent with web styling
+- **Unistyles 3.0**: C++ powered alternative/complement to NativeWind for advanced theming and responsive styles
 - **React Native Reusables**: shadcn/ui port for React Native
 - **Supabase**: Minimize backend infrastructure, leverage built-in auth and realtime
 - **Prioritize Expo ecosystem for maximum compatibility**
