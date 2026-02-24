@@ -293,7 +293,7 @@ For each key endpoint, specify:
 
 ### Runtime & Framework
 
-- **NestJS 11+** or **Hono 4+** - API framework
+- **NestJS 11+** - API framework
 - **TypeScript 5.6+** - Type safety
 - **Node.js 22 LTS** - Runtime
 
@@ -305,8 +305,9 @@ For each key endpoint, specify:
 
 ### Validation & Serialization
 
-- **Zod** - Schema validation
-- **class-transformer** (NestJS) - Serialization
+- **class-validator 0.14+** - Decorator-based validation
+- **class-transformer** - Serialization / DTO transformation
+- **Zod** - Schema validation (pipes, standalone)
 
 ### Authentication
 
@@ -316,7 +317,6 @@ For each key endpoint, specify:
 ### Deployment
 
 - **Docker Compose** - Containerized deployment
-- **CloudFlare Workers** - Edge deployment option
 
 ### Package Management
 
@@ -496,7 +496,7 @@ For each key endpoint, specify:
 
 ### Runtime & Framework
 
-- **NestJS 11+** or **Hono 4+** - API framework
+- **NestJS 11+** - API framework
 - **TypeScript 5.6+** - Type safety
 - **Node.js 22 LTS** - Runtime
 
@@ -508,7 +508,9 @@ For each key endpoint, specify:
 
 ### Validation & Serialization
 
-- **Zod** - Schema validation
+- **class-validator 0.14+** - Decorator-based validation
+- **class-transformer** - Serialization / DTO transformation
+- **Zod** - Schema validation (pipes, standalone)
 
 ### Authentication
 
@@ -522,7 +524,6 @@ For each key endpoint, specify:
 ### Deployment
 
 - **Docker Compose** - Containerized deployment
-- **CloudFlare Workers** - Edge deployment option
 
 ### Package Management
 
@@ -544,10 +545,11 @@ For each key endpoint, specify:
 ## Tech Stack Selection Principles
 
 - **Latest Versions Required**: Use latest versions of frameworks and tools
-- **NestJS or Hono**: Modern, TypeScript-first API frameworks
+- **NestJS**: TypeScript-first, decorator-based API framework with enterprise-grade architecture
+- **class-validator + class-transformer**: NestJS standard validation/serialization pipeline
 - **Drizzle ORM or Prisma**: Type-safe database access
 - **Supabase**: Minimize infrastructure, leverage built-in auth and realtime
-- **Zod**: Unified validation across request/response
+- **Zod**: Schema validation for pipes and standalone use cases
 - **Prioritize type safety and developer experience**
 - **Prioritize active community and long-term supported technologies**
 
