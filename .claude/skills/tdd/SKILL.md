@@ -11,28 +11,38 @@ TDD rules and patterns for Node/TypeScript/React projects.
 
 ## Test Target Rules
 
+### Priority Order (IMPORTANT)
+
+**Exclusions are evaluated FIRST, then Must Test patterns apply.**
+
+```
+1. Check Exclusion patterns → If matched, SKIP
+2. Check Must Test patterns → If matched, WRITE TEST
+3. If neither matched → SKIP (not a test target)
+```
+
 ### Must Test
 
 | Pattern | Description |
 |---------|-------------|
 | `*.service.ts` | Service functions |
 | `*.helper.ts`, `*.util.ts` | Helper/utility functions |
-| `*.tsx` (components) | React components |
+| `*.tsx` (components) | React components (**except** paths matching exclusions) |
 | `loader`, `action` | Route loaders/actions |
 | `*.schema.ts` | Zod schemas |
 | `use*.ts` | Custom hooks |
 
-### Exclude from Testing
+### Exclude from Testing (Evaluated First)
 
 | Pattern | Reason |
 |---------|--------|
+| `**/components/ui/**` | shadcn/ui auto-generated (takes priority over `*.tsx`) |
 | `*.d.ts` | Type declarations only |
 | `**/types.ts`, `**/types/**` | Type definitions only |
 | `**/*.port.ts` | Interface definitions only |
 | `**/index.ts` | Barrel files (re-exports) |
 | `*.config.ts` | Configuration files |
 | `**/constants.ts`, `**/const.ts` | Static values only |
-| `**/components/ui/**` | shadcn/ui auto-generated |
 | `**/*.css`, `**/*.scss` | Style files |
 
 ---
