@@ -28,7 +28,7 @@ Follow these steps **sequentially**. Each step MUST complete before proceeding.
 
 | Step | Action |
 |------|--------|
-| 6 | Switch to `development` branch (create if not exists) |
+| 6 | Fetch latest and switch to `development` branch: `git fetch origin development && git checkout development && git pull origin development` (create if not exists) |
 | 7 | Create feature branch from `development` |
 | 8 | Run `unit-test-writer` sub-agent → **verify tests FAIL** (Red Phase). **NEVER analyze patterns or write test code yourself — always delegate to the `unit-test-writer` subagent.** |
 | 9 | Implement code to pass tests → run the project's test command (see CLAUDE.md Commands) → **verify ALL pass** (Green Phase) |
@@ -87,3 +87,27 @@ IF any step fails:
 - `/clear` after Phase 3 (review complete): review reports no longer needed
 - Target: stay under 60k tokens per phase
 - If unsure: `/context` to check usage
+
+### Context Limit Warning Protocol
+
+```
+IF context exceeds 80k tokens before Phase completion:
+  1. Summarize current progress to user (completed steps, pending steps)
+  2. Recommend `/clear` with checkpoint description
+  3. Provide resume instructions:
+     - Current phase and step number
+     - Files modified so far
+     - Next action to take
+  4. After `/clear`, resume from checkpoint
+```
+
+### Checkpoint Template
+
+```markdown
+## Checkpoint Summary
+- **Phase**: [1-4] - [Phase Name]
+- **Last Completed Step**: [Step Number]
+- **Files Modified**: [List]
+- **Next Action**: [Description]
+- **Blockers**: [If any]
+```

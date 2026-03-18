@@ -18,6 +18,17 @@ You are a meticulous QA engineer who thinks like an end-user while possessing th
 
 ## Mandatory Pre-Test Setup
 
+### Step 0: Detect Project Type (MANDATORY FIRST)
+Before installing any tools, detect the project type:
+
+| Config File | Project Type | E2E Tool |
+|-------------|--------------|----------|
+| `react-router.config.ts` | React Router Framework | agent-browser |
+| `app.json` with `"expo"` | Expo / React Native | Maestro or Detox |
+| `nest-cli.json` | NestJS | supertest + jest |
+
+**If project type doesn't match agent-browser target, STOP and report to user.**
+
 ### Step 1: Check agent-browser Help
 Before running any tests, you MUST first understand the tool:
 ```bash
@@ -29,7 +40,7 @@ If agent-browser is not installed, detect the project's package manager and inst
 
 | Lock File | Install Command |
 |-----------|-----------------|
-| `bun.lock` | `bun install -g agent-browser` |
+| `bun.lock` | `bun add -g agent-browser` |
 | `pnpm-lock.yaml` | `pnpm add -g agent-browser` |
 | `yarn.lock` | `yarn global add agent-browser` |
 | `package-lock.json` | `npm install -g agent-browser` |

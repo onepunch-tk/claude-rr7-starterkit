@@ -155,7 +155,7 @@ Detailed rules: [references/commit-prefix-rules.md](references/commit-prefix-rul
 - ❌ **Do NOT use non-standard types** (types not in the table above)
 - ❌ **Do NOT use `hotfix:` type** → Use `fix`
 - ❌ **Do NOT use `merge:` type** → Use Git auto-generated message
-- ❌ **No force push**
+- ❌ **No force push** (Exception: `--force-with-lease` after interactive rebase, with user confirmation)
 
 ## Reference Documents
 

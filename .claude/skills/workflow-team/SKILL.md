@@ -39,7 +39,12 @@ Invoke with: `/workflow-team lead` or `/workflow-team teammate`
 | 4 | Monitor teammate progress, unblock as needed |
 
 > Enable **Plan Approval** for complex/risky tasks.
-> All teammates work on the **same feature branch** (file ownership prevents conflicts).
+> All teammates work on the **same feature branch**.
+>
+> **WARNING: File Ownership is CRITICAL**
+> - Overlapping file assignments = merge conflicts = wasted work
+> - Lead MUST verify NO file overlap before spawning teammates
+> - Use `git diff --name-only` to check for conflicts before merge
 
 #### Spawn Example
 
